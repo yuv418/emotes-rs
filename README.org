@@ -1,0 +1,25 @@
+#+TITLE: emotes-rs
+
+Rewriting ~emotes~ in Rust.
+
+Technologies (will use, since nothing much here yet)
+ + ~sea-orm~
+ + ~actix-web~
+
+** API documentation
+Simple, because it should be simple. I will also document administrator/regular user privileges
+
+*** Emotes verbs
+Available params:
+  - (optional for GET, required for all others) ~emote_slug~ for emote slug name
+  - required ~dir_slug~ (if empty then it uses the root dir)
+Verbs
+  - GET ~/api/emote~ lists *ALL* emotes (JSON)
+  - DELETE ~/api/emote~ deletes an emote
+  - PUT ~/api/emote~ creates an emote
+    - required ~emote_file~ with attached file
+    - required ~emote_type~ with either animated/still/sticker (string)
+*** User verbs
+TODO (also add key generation verb here)
+*** Directory verbs
+TODO

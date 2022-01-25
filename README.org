@@ -5,9 +5,11 @@ Rewriting ~emotes~ in Rust.
 Technologies (will use, since nothing much here yet)
  + ~sea-orm~
  + ~actix-web~
+ + ~async-graphql~ (GraphQL because I'm tired of writing parsing boilerplate for web APIs)
 
 ** API documentation
-Simple, because it should be simple. I will also document administrator/regular user privileges
+Simple, because it should be simple. I will also document administrator/regular user privileges.
+TODO this will be rewritten in GraphQL
 
 *** Emotes verbs
 Available params:

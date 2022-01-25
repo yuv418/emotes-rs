@@ -6,7 +6,7 @@ use uuid::Uuid;
 // Vecs
 // TODO add create/update time fields
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, DeriveEntityModel)]
 pub struct EmoteUser {
     uuid: Uuid,
     dirs: Vec<EmoteDir>,
@@ -15,7 +15,7 @@ pub struct EmoteUser {
     administrator: bool,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, DeriveEntityModel)]
 pub struct EmoteDir {
     uuid: Uuid,
     slug: String,
@@ -25,14 +25,14 @@ pub struct EmoteDir {
     child_dirs: Vec<EmoteDir>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, DeriveEntityModel)]
 pub enum EmoteType {
     Animated,
     Still,
     Sticker,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, DeriveEntityModel)]
 pub struct Emote {
     uuid: Uuid,
     slug: String,
@@ -43,7 +43,7 @@ pub struct Emote {
     images: Vec<EmoteImage>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, DeriveEntityModel)]
 pub struct EmoteImage {
     uuid: Uuid,
     width: u64,
@@ -51,8 +51,18 @@ pub struct EmoteImage {
     data: Vec<u8>,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, DeriveEntityModel)]
 pub struct EmoteToken {
     uuid: Uuid,
     token_hash: String,
+}
+
+#[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
+pub enum Relation {
+    #[sea_orm(has_many = "super::emote::Entity")]
+    Emote,
+    EmoteImage,
+    EmoteType,
+    EmoteDir,
+    EmoteToken,
 }

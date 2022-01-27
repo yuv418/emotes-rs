@@ -8,7 +8,9 @@ edition = "2018"
 [dependencies]
 bincode = "1"
 serde = "1"
-sea-orm = "0.5"
+sqlx = { version = "0.5", features = [ "postgres", "runtime-async-std-rustls", "uuid", "chrono", "offline", "json" ] }
 actix-web = "3.3"
 uuid = { version = "0.8", features = [ "serde" ] }
-async-graphql = "3.0.25"
+chrono = "0.4.19"
+async-graphql = { version = "3.0", features = ["uuid", "chrono"] }
+# TODO add forked vips-sys support

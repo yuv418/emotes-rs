@@ -1,68 +1,50 @@
+use async_graphql::*;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use uuid::Uuid;
 
-// TODO add relations for SeaORM and remove
-// Vecs
 // TODO add create/update time fields
 
-#[derive(Serialize, Deserialize, Debug, DeriveEntityModel)]
+#[derive(Serialize, Deserialize, Debug, SimpleObject)]
 pub struct EmoteUser {
     uuid: Uuid,
-    dirs: Vec<EmoteDir>,
-    tokens: Vec<EmoteToken>,
     username: String,
     administrator: bool,
 }
 
-#[derive(Serialize, Deserialize, Debug, DeriveEntityModel)]
+#[derive(Serialize, Deserialize, Debug, SimpleObject)]
 pub struct EmoteDir {
     uuid: Uuid,
     slug: String,
-    emotes: Vec<Emote>,
-    // Make sure that an emote slug and a
-    // child_dir slug do not collid when we insert!
-    child_dirs: Vec<EmoteDir>,
+    emote_user_uuid: Uuid,
 }
 
-#[derive(Serialize, Deserialize, Debug, DeriveEntityModel)]
+#[derive(Serialize, Deserialize, Debug, Copy, Clone, PartialEq, Eq, Enum)]
 pub enum EmoteType {
     Animated,
     Still,
     Sticker,
 }
 
-#[derive(Serialize, Deserialize, Debug, DeriveEntityModel)]
+#[derive(Serialize, Deserialize, Debug, SimpleObject)]
 pub struct Emote {
     uuid: Uuid,
     slug: String,
+    emote_dir_uuid: Uuid,
     emote_type: EmoteType,
-    // Will be empty be default, we will create a
-    // load_images() function to read this from the
-    // database tree
-    images: Vec<EmoteImage>,
 }
 
-#[derive(Serialize, Deserialize, Debug, DeriveEntityModel)]
+#[derive(Serialize, Deserialize, Debug, SimpleObject)]
 pub struct EmoteImage {
     uuid: Uuid,
     width: u64,
     height: u64,
-    data: Vec<u8>,
+    emote_uuid: Uuid,
+    path: String,
 }
 
-#[derive(Serialize, Deserialize, Debug, DeriveEntityModel)]
+#[derive(Serialize, Deserialize, Debug, SimpleObject)]
 pub struct EmoteToken {
     uuid: Uuid,
     token_hash: String,
-}
-
-#[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
-pub enum Relation {
-    #[sea_orm(has_many = "super::emote::Entity")]
-    Emote,
-    EmoteImage,
-    EmoteType,
-    EmoteDir,
-    EmoteToken,
 }

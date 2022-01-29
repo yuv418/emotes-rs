@@ -1,22 +1,44 @@
 use async_graphql::*;
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
 use uuid::Uuid;
 
 // TODO add create/update time fields
 
 #[derive(Serialize, Deserialize, Debug, SimpleObject)]
+#[graphql(complex)]
 pub struct EmoteUser {
-    uuid: Uuid,
-    username: String,
-    administrator: bool,
+    pub uuid: Uuid,
+    pub username: String,
+    pub administrator: bool,
+    pub create_time: DateTime<Utc>,
+    pub modify_time: Option<DateTime<Utc>>,
+}
+
+#[ComplexObject]
+impl EmoteUser {
+    async fn tokens(&self, ctx: &Context<'_>) -> Vec<EmoteImage> {
+        unimplemented!()
+    }
+    async fn dirs(&self, ctx: &Context<'_>) -> Vec<EmoteImage> {
+        unimplemented!()
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug, SimpleObject)]
+#[graphql(complex)]
 pub struct EmoteDir {
-    uuid: Uuid,
-    slug: String,
-    emote_user_uuid: Uuid,
+    pub uuid: Uuid,
+    pub slug: String,
+    pub emote_user_uuid: Uuid,
+    pub create_time: DateTime<Utc>,
+    pub modify_time: Option<DateTime<Utc>>,
+}
+#[ComplexObject]
+impl EmoteDir {
+    async fn emotes(&self, ctx: &Context<'_>) -> Vec<EmoteImage> {
+        unimplemented!()
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug, Copy, Clone, PartialEq, Eq, Enum)]
@@ -27,24 +49,41 @@ pub enum EmoteType {
 }
 
 #[derive(Serialize, Deserialize, Debug, SimpleObject)]
+#[graphql(complex)]
 pub struct Emote {
-    uuid: Uuid,
-    slug: String,
-    emote_dir_uuid: Uuid,
-    emote_type: EmoteType,
+    pub uuid: Uuid,
+    pub slug: String,
+    pub emote_dir_uuid: Uuid,
+    pub emote_type: EmoteType,
+    pub create_time: DateTime<Utc>,
+    pub modify_time: Option<DateTime<Utc>>,
+}
+
+#[ComplexObject]
+impl Emote {
+    async fn images(&self, ctx: &Context<'_>) -> Vec<EmoteImage> {
+        unimplemented!()
+    }
 }
 
 #[derive(Serialize, Deserialize, Debug, SimpleObject)]
 pub struct EmoteImage {
-    uuid: Uuid,
-    width: u64,
-    height: u64,
-    emote_uuid: Uuid,
-    path: String,
+    pub uuid: Uuid,
+    pub width: u64,
+    pub height: u64,
+    pub emote_uuid: Uuid,
+    #[graphql(skip)]
+    pub path: String,
+    pub create_time: DateTime<Utc>,
+    pub modify_time: Option<DateTime<Utc>>,
 }
 
 #[derive(Serialize, Deserialize, Debug, SimpleObject)]
 pub struct EmoteToken {
-    uuid: Uuid,
-    token_hash: String,
+    pub uuid: Uuid,
+    pub emote_user_uuid: Uuid,
+    pub description: String,
+    pub token_hash: String,
+    pub create_time: DateTime<Utc>,
+    pub modify_time: Option<DateTime<Utc>>,
 }

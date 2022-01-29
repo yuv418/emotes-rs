@@ -44,6 +44,12 @@ async fn main() -> Result<()> {
             .with_context(|| "Failed to connect to PostgreSQL.")?,
     );
 
+    // Do any left-over migrations
+    sqlx::migrate!()
+        .run(&*db_pool)
+        .await
+        .with_context(|| "Failed to migrate the database!")?;
+
     info!("Database connection success, starting up actix");
 
     let schema = Schema::build(

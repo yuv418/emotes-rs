@@ -48,6 +48,14 @@ impl Mutation {
     async fn delete_dir(&self, ctx: &Context<'_>, uuid: Uuid) -> Result<bool> {
         unimplemented!()
     }
+    async fn add_user_to_dir(
+        &self,
+        ctx: &Context<'_>,
+        user_uuid: Uuid,
+        dir_uuid: Uuid,
+    ) -> Result<bool> {
+        unimplemented!()
+    }
 
     async fn upload_emote(
         &self,

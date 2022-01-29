@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS emote_user (
        uuid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
        username VARCHAR(200) UNIQUE NOT NULL,
        administrator BOOLEAN NOT NULL,
-       create_time TIMESTAMP WITH TIME ZONE NOT NULL,
+       create_time TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT current_timestamp,
        modify_time TIMESTAMP WITH TIME ZONE
 );
 
@@ -13,14 +13,14 @@ CREATE TABLE IF NOT EXISTS emote_token (
        emote_user_uuid UUID REFERENCES emote_user (uuid) NOT NULL,
        description VARCHAR(500) UNIQUE NOT NULL,
        token_hash TEXT NOT NULL,
-       create_time TIMESTAMP WITH TIME ZONE NOT NULL,
+       create_time TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT current_timestamp,
        modify_time TIMESTAMP WITH TIME ZONE
 );
 
 CREATE TABLE IF NOT EXISTS emote_dir (
        uuid UUID PRIMARY KEY DEFAULT gen_random_uuid(),
        slug VARCHAR(200) UNIQUE NOT NULL,
-       create_time TIMESTAMP WITH TIME ZONE NOT NULL,
+       create_time TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT current_timestamp,
        modify_time TIMESTAMP WITH TIME ZONE
 );
 
@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS emote (
        slug VARCHAR(200) UNIQUE NOT NULL,
        emote_dir_uuid UUID REFERENCES emote_dir (uuid) NOT NULL,
        emote_type EMOTE_TYPE NOT NULL,
-       create_time TIMESTAMP WITH TIME ZONE NOT NULL,
+       create_time TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT current_timestamp,
        modify_time TIMESTAMP WITH TIME ZONE,
        CONSTRAINT unique_slug_per_dir UNIQUE (slug, emote_dir_uuid)
 );
@@ -49,7 +49,7 @@ CREATE TABLE IF NOT EXISTS emote_image(
        height INT NOT NULL,
        emote_uuid UUID REFERENCES emote (uuid) NOT NULL,
        image_path TEXT UNIQUE NOT NULL,
-       create_time TIMESTAMP WITH TIME ZONE NOT NULL,
+       create_time TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT current_timestamp,
        modify_time TIMESTAMP WITH TIME ZONE,
        CONSTRAINT unique_size_per_emote UNIQUE (width, height, emote_uuid)
 );

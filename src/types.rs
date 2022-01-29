@@ -17,13 +17,28 @@ pub struct EmoteUser {
     pub modify_time: Option<DateTime<Utc>>,
 }
 
+// TODO maybe consolidate the boilerplate that's repeated in each function into once function later
 #[ComplexObject]
 impl EmoteUser {
-    async fn tokens(&self, ctx: &Context<'_>) -> Vec<EmoteImage> {
-        unimplemented!()
+    async fn tokens(&self, ctx: &Context<'_>) -> Result<Vec<EmoteToken>> {
+        let pool = ctx.data::<Arc<PgPool>>()?;
+
+        Ok(sqlx::query_as!(
+            EmoteToken,
+            "SELECT * FROM emote_token WHERE emote_user_uuid = ($1)",
+            self.uuid
+        )
+        .fetch_all(&**pool)
+        .await?)
     }
-    async fn dirs(&self, ctx: &Context<'_>) -> Vec<EmoteImage> {
-        unimplemented!()
+    async fn dirs(&self, ctx: &Context<'_>) -> Result<Vec<EmoteDir>> {
+        let pool = ctx.data::<Arc<PgPool>>()?;
+
+        Ok(sqlx::query_as!(
+            EmoteDir,
+            "SELECT emote_dir.* FROM emote_dir INNER JOIN emote_user_emote_dir e ON e.emote_dir_uuid = uuid WHERE e.emote_user_uuid = ($1)",
+            self.uuid
+        ).fetch_all(&**pool).await?)
     }
 }
 
@@ -32,22 +47,37 @@ impl EmoteUser {
 pub struct EmoteDir {
     pub uuid: Uuid,
     pub slug: String,
-    pub emote_user_uuid: Uuid,
     pub create_time: DateTime<Utc>,
     pub modify_time: Option<DateTime<Utc>>,
 }
 #[ComplexObject]
 impl EmoteDir {
     // Dealing with many-to-many relationship here
-    async fn users(&self, ctx: &Context<'_>) -> Vec<EmoteUser> {
-        unimplemented!()
+    async fn users(&self, ctx: &Context<'_>) -> Result<Vec<EmoteUser>> {
+        let pool = ctx.data::<Arc<PgPool>>()?;
+
+        Ok(sqlx::query_as!(
+            EmoteUser,
+            "SELECT emote_user.* FROM emote_user INNER JOIN emote_user_emote_dir e ON e.emote_user_uuid = uuid WHERE e.emote_dir_uuid = ($1)",
+            self.uuid
+        ).fetch_all(&**pool).await?)
     }
-    async fn emotes(&self, ctx: &Context<'_>) -> Vec<EmoteImage> {
-        unimplemented!()
+    async fn emotes(&self, ctx: &Context<'_>) -> Result<Vec<Emote>> {
+        let pool = ctx.data::<Arc<PgPool>>()?;
+
+        // You have to do this when querying an enum
+        Ok(sqlx::query_as!(
+            Emote,
+            "SELECT uuid, slug, emote_dir_uuid, emote_type as \"emote_type!: EmoteType\", create_time, modify_time FROM emote WHERE emote_dir_uuid = ($1)",
+            self.uuid
+        )
+        .fetch_all(&**pool)
+        .await?)
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Copy, Clone, PartialEq, Eq, Enum)]
+#[derive(sqlx::Type, Serialize, Deserialize, Debug, Copy, Clone, PartialEq, Eq, Enum)]
+#[sqlx(type_name = "emote_type", rename_all = "lowercase")]
 pub enum EmoteType {
     Animated,
     Still,
@@ -67,16 +97,24 @@ pub struct Emote {
 
 #[ComplexObject]
 impl Emote {
-    async fn images(&self, ctx: &Context<'_>) -> Vec<EmoteImage> {
-        unimplemented!()
+    async fn images(&self, ctx: &Context<'_>) -> Result<Vec<EmoteImage>> {
+        let pool = ctx.data::<Arc<PgPool>>()?;
+
+        Ok(sqlx::query_as!(
+            EmoteImage,
+            "SELECT * FROM emote_image WHERE emote_uuid = ($1)",
+            self.uuid
+        )
+        .fetch_all(&**pool)
+        .await?)
     }
 }
 
 #[derive(Serialize, Deserialize, Debug, SimpleObject)]
 pub struct EmoteImage {
     pub uuid: Uuid,
-    pub width: u64,
-    pub height: u64,
+    pub width: i32,
+    pub height: i32,
     pub emote_uuid: Uuid,
     #[graphql(skip)] // relative to the data dir
     pub image_path: String,

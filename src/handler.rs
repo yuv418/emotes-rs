@@ -51,3 +51,11 @@ pub async fn api_graphql_handler(
         err_response("Missing required token field").into()
     }
 }
+
+pub async fn emote_display(
+    pool: web::Data<Arc<PgPool>>,
+    dir_slug: String,
+    emote_slug: String,
+) -> HttpResponse {
+    HttpResponse::Ok().body("hi")
+}

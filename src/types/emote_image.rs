@@ -132,7 +132,7 @@ impl EmoteImage {
 
             info!("Start resizing image; wait");
 
-            let (new_width, new_height) = if let Some(height) = height {
+            let (out_path, new_width, new_height) = if let Some(height) = height {
                 unimplemented!()
             } else {
                 Self::vips_image_resize(
@@ -146,7 +146,8 @@ impl EmoteImage {
 
             // TODO change the content_type to actually be the extension BASED ON the emote, not the orig image content type
             // any point in setting width?
-            sqlx::query!(
+            let mut transact_fail = false;
+            if let Ok(res) = sqlx::query!(
                 "UPDATE emote_image SET processing = ($1), width = ($2), height = ($3) WHERE uuid = ($4)",
                 false,
                 new_width,
@@ -154,7 +155,30 @@ impl EmoteImage {
                 resized_emote_image.uuid,
             )
             .execute(&*pool)
-            .await?;
+            .await {
+                let updated_images = res.rows_affected();
+                info!("# of images updated: {}", updated_images);
+
+                if updated_images == 0 {
+                    transact_fail = true;
+                }
+            }
+            else {
+                transact_fail = true;
+            }
+
+            if transact_fail {
+                // this is a duplicate, or something went wrong, rollback
+                sqlx::query!(
+                    "DELETE FROM emote_image WHERE uuid = ($1)",
+                    resized_emote_image.uuid
+                )
+                .execute(&*pool)
+                .await?;
+
+                // Delete the failed emote file
+                std::fs::remove_file(out_path)?;
+            }
 
             Ok::<(), async_graphql::Error>(())
         });
@@ -169,7 +193,7 @@ impl EmoteImage {
         ext: String,
         width: i32,
         height: Option<i32>,
-    ) -> (i32, i32) {
+    ) -> (PathBuf, i32, i32) {
         // TODO enable GIF looping
         let vips_opts = if ext == "gif" { "[n=-1]" } else { "" };
         let orig_vips_image =
@@ -190,7 +214,7 @@ impl EmoteImage {
             .image_write_to_file(path.to_str().unwrap())
             .expect("failed to write resized image");
 
-        (width, height)
+        (path, width, height)
     }
 
     fn emote_path(uuid: Uuid, extension: String) -> Result<PathBuf> {

@@ -89,6 +89,11 @@ async fn main() -> Result<()> {
                     .guard(guard::Get())
                     .to(handler::graphql_playground),
             )
+            .service(
+                web::resource("/{slug}/{emote_slug}")
+                    .guard(guard::Get())
+                    .to(handler::emote_display),
+            )
         // TODO add one for actually getting the emotes
     })
     .bind(&EMOTES_CONFIG.http_bind)

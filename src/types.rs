@@ -174,15 +174,29 @@ impl Emote {
 }
 
 impl Emote {
-    async fn by_slug(&self, pool: Arc<PgPool>, slug: String) -> Result<Self> {
+    // Don't really see a way to keep this DRY
+    pub async fn all(pool: Arc<PgPool>) -> Result<Vec<Self>> {
+        Ok(sqlx::query_as!(
+            Emote,
+            "SELECT emote.uuid, emote.slug, emote_dir_uuid, emote_type as \"emote_type!: EmoteType\", emote.create_time, emote.modify_time FROM emote")
+            .fetch_all(&*pool).await?)
+    }
+    pub async fn by_uuid(pool: Arc<PgPool>, uuid: Uuid) -> Result<Option<Self>> {
+        Ok(sqlx::query_as!(
+            Emote,
+            "SELECT emote.uuid, emote.slug, emote_dir_uuid, emote_type as \"emote_type!: EmoteType\", emote.create_time, emote.modify_time FROM emote WHERE emote.uuid = ($1)",
+            uuid).fetch_optional(&*pool).await?)
+    }
+    pub async fn by_slug(pool: Arc<PgPool>, slug: String) -> Result<Option<Self>> {
         // 100% of the time, you can split the slug with '/'
         let emote_parts: Vec<&str> = slug.split("/").collect();
 
         // TODO make a static str and concat the list of columns since we are not being DRY
+        // might not be possible, though
         Ok(sqlx::query_as!(
             Emote,
             "SELECT emote.uuid, emote.slug, emote_dir_uuid, emote_type as \"emote_type!: EmoteType\", emote.create_time, emote.modify_time FROM emote INNER JOIN emote_dir ON emote.emote_dir_uuid = emote_dir.uuid WHERE emote_dir.slug= ($1) AND emote.slug = ($2)",
-            emote_parts[0], emote_parts[1]).fetch_one(&*pool).await?)
+            emote_parts[0], emote_parts[1]).fetch_optional(&*pool).await?)
     }
 }
 

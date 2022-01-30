@@ -11,8 +11,16 @@ pub struct Query;
 #[Object]
 impl Query {
     #[graphql(guard = "UserOwnsGuard::new(Table::EmoteUser, Column::UUID(uuid)).or(AdminGuard)")]
-    async fn user_by_uuid(&self, ctx: &Context<'_>, uuid: Uuid) -> Result<Vec<EmoteUser>> {
-        Ok(vec![])
+    async fn user_by_uuid(&self, ctx: &Context<'_>, uuid: Uuid) -> Result<Option<EmoteUser>> {
+        let pool = ctx.data::<Arc<PgPool>>()?;
+
+        Ok(sqlx::query_as!(
+            EmoteUser,
+            "SELECT * FROM emote_user WHERE uuid = ($1)",
+            uuid
+        )
+        .fetch_optional(&**pool)
+        .await?)
     }
     #[graphql(
         guard = "UserOwnsGuard::new(Table::EmoteUser, Column::Username(username.clone())).or(AdminGuard)"
@@ -21,12 +29,24 @@ impl Query {
         &self,
         ctx: &Context<'_>,
         username: String,
-    ) -> Result<Vec<EmoteUser>> {
-        Ok(vec![])
+    ) -> Result<Option<EmoteUser>> {
+        let pool = ctx.data::<Arc<PgPool>>()?;
+
+        Ok(sqlx::query_as!(
+            EmoteUser,
+            "SELECT * FROM emote_user WHERE username = ($1)",
+            username
+        )
+        .fetch_optional(&**pool)
+        .await?)
     }
     #[graphql(guard = "AdminGuard")]
     async fn all_users(&self, ctx: &Context<'_>) -> Result<Vec<EmoteUser>> {
-        Ok(vec![])
+        let pool = ctx.data::<Arc<PgPool>>()?;
+
+        Ok(sqlx::query_as!(EmoteUser, "SELECT * FROM emote_user",)
+            .fetch_all(&**pool)
+            .await?)
     }
 
     #[graphql(guard = "UserOwnsGuard::new(Table::EmoteToken, Column::UUID(uuid)).or(AdminGuard)")]
@@ -51,53 +71,94 @@ impl Query {
     }
 
     #[graphql(guard = "UserOwnsGuard::new(Table::EmoteDir, Column::UUID(uuid)).or(AdminGuard)")]
-    async fn dir(&self, ctx: &Context<'_>, uuid: Uuid) -> Result<EmoteDir> {
-        unimplemented!()
+    async fn dir(&self, ctx: &Context<'_>, uuid: Uuid) -> Result<Option<EmoteDir>> {
+        let pool = ctx.data::<Arc<PgPool>>()?;
+
+        Ok(
+            sqlx::query_as!(EmoteDir, "SELECT * FROM emote_dir WHERE uuid = ($1)", uuid)
+                .fetch_optional(&**pool)
+                .await?,
+        )
     }
     // no, you want to do fields
     #[graphql(
         guard = "UserOwnsGuard::new(Table::EmoteDir, Column::DirSlug(slug.clone())).or(AdminGuard)"
     )]
-    async fn dir_by_slug(&self, ctx: &Context<'_>, slug: String) -> Result<EmoteDir> {
-        unimplemented!()
+    async fn dir_by_slug(&self, ctx: &Context<'_>, slug: String) -> Result<Option<EmoteDir>> {
+        let pool = ctx.data::<Arc<PgPool>>()?;
+
+        Ok(
+            sqlx::query_as!(EmoteDir, "SELECT * FROM emote_dir WHERE slug = ($1)", slug)
+                .fetch_optional(&**pool)
+                .await?,
+        )
     }
     #[graphql(guard = "AdminGuard")]
     async fn all_dirs(&self, ctx: &Context<'_>) -> Result<Vec<EmoteDir>> {
-        Ok(vec![])
+        let pool = ctx.data::<Arc<PgPool>>()?;
+
+        Ok(sqlx::query_as!(EmoteDir, "SELECT * FROM emote_dir")
+            .fetch_all(&**pool)
+            .await?)
     }
     // TODO add verbs for directory privileges
 
     #[graphql(guard = "UserOwnsGuard::new(Table::Emote, Column::UUID(uuid)).or(AdminGuard)")]
-    async fn emote(&self, ctx: &Context<'_>, uuid: Uuid) -> Result<Emote> {
-        unimplemented!()
+    async fn emote(&self, ctx: &Context<'_>, uuid: Uuid) -> Result<Option<Emote>> {
+        let pool = ctx.data::<Arc<PgPool>>()?;
+        Emote::by_uuid(Arc::clone(&pool), uuid).await
     }
     #[graphql(
         guard = "UserOwnsGuard::new(Table::Emote, Column::EmoteSlug(slug.clone())).or(AdminGuard)"
     )]
-    async fn emote_by_slug(&self, ctx: &Context<'_>, slug: String) -> Result<Vec<Emote>> {
-        Ok(vec![])
+    async fn emote_by_slug(&self, ctx: &Context<'_>, slug: String) -> Result<Option<Emote>> {
+        let pool = ctx.data::<Arc<PgPool>>()?;
+        Emote::by_slug(Arc::clone(&pool), slug).await
     }
     #[graphql(guard = "AdminGuard")]
     async fn all_emotes(&self, ctx: &Context<'_>) -> Result<Vec<Emote>> {
-        Ok(vec![])
+        let pool = ctx.data::<Arc<PgPool>>()?;
+        Emote::all(Arc::clone(&pool)).await
     }
 
     #[graphql(guard = "UserOwnsGuard::new(Table::EmoteImage, Column::UUID(uuid)).or(AdminGuard)")]
-    async fn emote_image(&self, ctx: &Context<'_>, uuid: Uuid) -> Result<EmoteImage> {
-        unimplemented!()
+    async fn emote_image(&self, ctx: &Context<'_>, uuid: Uuid) -> Result<Option<EmoteImage>> {
+        let pool = ctx.data::<Arc<PgPool>>()?;
+
+        Ok(sqlx::query_as!(
+            EmoteImage,
+            "SELECT * FROM emote_image WHERE uuid = ($1)",
+            uuid
+        )
+        .fetch_optional(&**pool)
+        .await?)
     }
     #[graphql(guard = "UserOwnsGuard::new(Table::Emote, Column::UUID(emote_uuid)).or(AdminGuard)")]
     async fn emote_image_by_size(
         &self,
         ctx: &Context<'_>,
         emote_uuid: Uuid,
-        width: u64,
-        height: u64,
-    ) -> Result<EmoteImage> {
-        unimplemented!()
+        width: i32,
+        height: i32,
+    ) -> Result<Option<EmoteImage>> {
+        let pool = ctx.data::<Arc<PgPool>>()?;
+
+        Ok(sqlx::query_as!(
+            EmoteImage,
+            "SELECT * FROM emote_image WHERE emote_uuid = ($1) AND width = ($2) AND height = ($3)",
+            emote_uuid,
+            width,
+            height
+        )
+        .fetch_optional(&**pool)
+        .await?)
     }
     #[graphql(guard = "AdminGuard")]
     async fn all_emote_images(&self, ctx: &Context<'_>) -> Result<Vec<EmoteImage>> {
-        Ok(vec![])
+        let pool = ctx.data::<Arc<PgPool>>()?;
+
+        Ok(sqlx::query_as!(EmoteImage, "SELECT * FROM emote_image",)
+            .fetch_all(&**pool)
+            .await?)
     }
 }

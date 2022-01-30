@@ -107,18 +107,38 @@ impl Mutation {
     }
     #[graphql(guard = "UserDirPrivilegedGuard::new(uuid).or(AdminGuard)")]
     async fn delete_dir(&self, ctx: &Context<'_>, uuid: Uuid) -> Result<bool> {
+        let user = ctx.data::<EmoteUser>()?;
         let pool = ctx.data::<Arc<PgPool>>()?;
-        // No cascade, so I don't really know if this will work. The only way this will be allowed to work is if only one person owns the directory
         // Step 1: query the number of users in the join table
-        // Step 2: if there is only one person left AND that person is you (or the person is privileged), delete all references to the dir from the join table
+        // Step 2: if there is only one person left AND that person is you, delete all references to the dir from the join table
         // Step 4: delete this dir (will cascade to emotes)
         // Step 5: delete emote files
-        let result = sqlx::query!("DELETE FROM emote_dir WHERE uuid = ($1)", uuid)
-            .execute(&**pool)
-            .await?;
+        let dir_owners = sqlx::query!(
+            "SELECT emote_user_uuid FROM emote_user_emote_dir WHERE emote_dir_uuid = ($1)",
+            uuid,
+        )
+        .fetch_all(&**pool)
+        .await?;
+        if dir_owners.len() == 1 {
+            // one owner
+            if user.administrator || dir_owners[0].emote_user_uuid == user.uuid {
+                // one person left, that person is you. We don't have to check privilege since it's alread done for us
+
+                let result = sqlx::query!("DELETE FROM emote_dir WHERE uuid = ($1)", uuid)
+                    .execute(&**pool)
+                    .await?;
+
+                // TODO all emote data/dirs MUST be deleted here
+
+                Mutation::delete_helper(result).await
+            } else {
+                Err("You are not authorized to delete this resource as you are not an administrator or the single owner of this dir.".into())
+            }
+        } else {
+            Err("You can only delete a dir when it has one owner remaining.".into())
+        }
 
         // TODO delete from the data dir as well
-        Mutation::delete_helper(result).await
     }
 
     #[graphql(guard = "UserDirPrivilegedGuard::new(dir_uuid).or(AdminGuard)")]
@@ -127,8 +147,15 @@ impl Mutation {
         ctx: &Context<'_>,
         user_uuid: Uuid,
         dir_uuid: Uuid,
+        privileged: bool,
     ) -> Result<bool> {
-        unimplemented!()
+        let pool = ctx.data::<Arc<PgPool>>()?;
+        let result = sqlx::query!("INSERT INTO emote_user_emote_dir (emote_user_uuid, emote_dir_uuid, privileged) VALUES ($1, $2, $3)",
+                                  user_uuid,
+                                  dir_uuid,
+                                  privileged).execute(&**pool).await?;
+
+        Mutation::delete_helper(result).await // we can use the delete helper since it just checks how many rows were changed. TODO change the delete helper's name
     }
 
     #[graphql(guard = "UserOwnsGuard::new(Table::EmoteDir, Column::UUID(dir_uuid)).or(AdminGuard)")]

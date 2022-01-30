@@ -236,6 +236,9 @@ pub struct EmoteImage {
     pub image_path: String,
     pub create_time: DateTime<Utc>,
     pub modify_time: Option<DateTime<Utc>>,
+    // First the image gets inserted, then it is resized, then this is updated when the image is saved to the data dir
+    // We need this since the image is saved as <uuid>.<extension>, and we don't get the UUID until we actually insert.
+    pub processing: bool,
 }
 
 #[derive(Serialize, Deserialize, Debug, SimpleObject)]

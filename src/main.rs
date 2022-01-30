@@ -1,5 +1,5 @@
 use actix_cors::Cors;
-use actix_web::{guard, middleware::Logger, web, App, HttpRequest, HttpResponse, HttpServer};
+use actix_web::{guard, middleware::Logger, web, App, HttpServer};
 use anyhow::{Context, Result};
 use async_graphql::EmptySubscription;
 use async_graphql::Schema;
@@ -72,8 +72,8 @@ async fn main() -> Result<()> {
             .max_age(1800);
 
         App::new()
-            .data(Arc::clone(&db_pool))
-            .data(schema.clone())
+            .app_data(web::Data::new(Arc::clone(&db_pool)))
+            .app_data(web::Data::new(schema.clone()))
             .wrap(cors)
             .wrap(Logger::default())
             .service(
@@ -91,7 +91,7 @@ async fn main() -> Result<()> {
     .bind(&EMOTES_CONFIG.http_bind)
     .with_context(|| "Failed to start the GraphQL HTTP server")?
     .run()
-    .await;
+    .await?;
 
     Ok(())
 }

@@ -1,18 +1,8 @@
-use argon2::{
-    password_hash::{PasswordHash, PasswordHasher, PasswordVerifier, SaltString},
-    Argon2,
-};
 use async_graphql::*;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use sqlx::PgPool;
-use std::sync::Arc;
 use uuid::Uuid;
 
-use crate::types::*;
-use rand::{distributions::Alphanumeric, thread_rng, Rng};
-
-use crate::graphql_schema::guards::{Column, UserOwnership};
 #[derive(Serialize, Deserialize, Debug, SimpleObject)]
 pub struct EmoteImage {
     pub uuid: Uuid,

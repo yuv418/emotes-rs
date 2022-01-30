@@ -107,19 +107,24 @@ impl SerializedEmoteToken {
         .fetch_optional(&*pool)
         .await?
         {
-            // Found a token, does it correspond to a user?
-            // TODO handle when there is no user but a token
-            // Shouldn't we delete or warn?
-            Ok(sqlx::query_as!(
-                EmoteUser,
-                "SELECT * FROM emote_user WHERE uuid=($1)",
-                emote_token.emote_user_uuid
-            )
-            .fetch_optional(&*pool)
-            .await?)
-        } else {
-            // No token found
-            Ok(None)
+            // Verify the password hash
+            let parse_hash = PasswordHash::new(&emote_token.token_hash)?;
+            if Argon2::default()
+                .verify_password(deserialized_token.token.as_bytes(), &parse_hash)
+                .is_ok()
+            {
+                // Found a token, does it correspond to a user?
+                // TODO handle when there is no user but a token
+                // Shouldn't we delete or warn?
+                return Ok(sqlx::query_as!(
+                    EmoteUser,
+                    "SELECT * FROM emote_user WHERE uuid=($1)",
+                    emote_token.emote_user_uuid
+                )
+                .fetch_optional(&*pool)
+                .await?);
+            }
         }
+        Ok(None)
     }
 }

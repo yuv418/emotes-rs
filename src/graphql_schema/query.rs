@@ -9,13 +9,26 @@ pub struct Query;
 
 #[Object]
 impl Query {
-    // TODO ADMIN ONLY
+    async fn user_by_uuid(&self, ctx: &Context<'_>, uuid: Uuid) -> Result<Vec<EmoteUser>> {
+        Ok(vec![])
+    }
+    async fn user_by_username(
+        &self,
+        ctx: &Context<'_>,
+        username: String,
+    ) -> Result<Vec<EmoteUser>> {
+        Ok(vec![])
+    }
     #[graphql(guard = "AdminGuard")]
-    async fn users(&self, ctx: &Context<'_>, uuid: Option<Uuid>) -> Result<Vec<EmoteUser>> {
+    async fn all_users(&self, ctx: &Context<'_>) -> Result<Vec<EmoteUser>> {
         Ok(vec![])
     }
 
     async fn token(&self, ctx: &Context<'_>, uuid: Option<Uuid>) -> Result<EmoteToken> {
+        unimplemented!()
+    }
+    #[graphql(guard = "AdminGuard")]
+    async fn all_tokens(&self, ctx: &Context<'_>) -> Result<EmoteToken> {
         unimplemented!()
     }
 
@@ -26,7 +39,7 @@ impl Query {
     async fn dir_by_slug(&self, ctx: &Context<'_>, slug: String) -> Result<EmoteDir> {
         unimplemented!()
     }
-    // Admin only
+    #[graphql(guard = "AdminGuard")]
     async fn all_dirs(&self, ctx: &Context<'_>) -> Result<Vec<EmoteDir>> {
         Ok(vec![])
     }
@@ -37,7 +50,7 @@ impl Query {
     async fn emote_by_slug(&self, ctx: &Context<'_>, slug: String) -> Result<Vec<Emote>> {
         Ok(vec![])
     }
-    // Admin only
+    #[graphql(guard = "AdminGuard")]
     async fn all_emotes(&self, ctx: &Context<'_>) -> Result<Vec<Emote>> {
         Ok(vec![])
     }
@@ -54,7 +67,7 @@ impl Query {
     ) -> Result<EmoteImage> {
         unimplemented!()
     }
-    // Admin only
+    #[graphql(guard = "AdminGuard")]
     async fn all_emote_images(&self, ctx: &Context<'_>) -> Result<Vec<EmoteImage>> {
         Ok(vec![])
     }

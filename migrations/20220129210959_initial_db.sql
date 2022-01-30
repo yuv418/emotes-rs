@@ -1,4 +1,4 @@
--- Add migration script here
+-- TODO cascade delete with relations and stuff?
 
 CREATE TABLE IF NOT EXISTS emote_user (
        uuid UUID PRIMARY KEY DEFAULT gen_random_uuid(),

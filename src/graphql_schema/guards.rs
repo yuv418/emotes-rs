@@ -49,7 +49,7 @@ pub struct UserOwnsGuard {
 }
 
 impl UserOwnsGuard {
-    fn new(table: Table, column: Column) -> Self {
+    pub fn new(table: Table, column: Column) -> Self {
         UserOwnsGuard { table, column }
     }
 }
@@ -59,17 +59,11 @@ impl Guard for UserOwnsGuard {
     async fn check(&self, ctx: &Context<'_>) -> Result<()> {
         if let Some(emote_user) = ctx.data_opt::<EmoteUser>() {
             if match &self.table {
-                EmoteUser => EmoteUser::owned_by(ctx, &self.column, &emote_user).await?,
-                EmoteDir => EmoteDir::owned_by(ctx, &self.column, &emote_user).await?,
-                Emote => {
-                    unimplemented!()
-                }
-                EmoteImage => {
-                    unimplemented!()
-                }
-                EmoteToken => {
-                    unimplemented!()
-                }
+                Table::EmoteUser => EmoteUser::owned_by(ctx, &self.column, &emote_user).await?,
+                Table::EmoteDir => EmoteDir::owned_by(ctx, &self.column, &emote_user).await?,
+                Table::Emote => Emote::owned_by(ctx, &self.column, &emote_user).await?,
+                Table::EmoteImage => EmoteImage::owned_by(ctx, &self.column, &emote_user).await?,
+                Table::EmoteToken => EmoteToken::owned_by(ctx, &self.column, &emote_user).await?,
             } {
                 return Ok(());
             }

@@ -3,7 +3,7 @@ use std::fs::File;
 use std::sync::Arc;
 use uuid::Uuid;
 
-use crate::graphql_schema::guards::AdminGuard;
+use crate::graphql_schema::guards::{AdminGuard, Column, Table, UserOwnsGuard};
 use crate::types::*;
 
 pub struct Mutation;
@@ -19,11 +19,14 @@ impl Mutation {
     ) -> Result<EmoteUser> {
         unimplemented!()
     }
-    #[graphql(guard = "AdminGuard")]
+    #[graphql(guard = "UserOwnsGuard::new(Table::EmoteUser, Column::UUID(uuid)).or(AdminGuard)")]
     async fn delete_user(&self, ctx: &Context<'_>, uuid: Uuid) -> Result<bool> {
         unimplemented!()
     }
 
+    #[graphql(
+        guard = "UserOwnsGuard::new(Table::EmoteUser, Column::UUID(user_uuid)).or(AdminGuard)"
+    )]
     async fn create_token(
         &self,
         ctx: &Context<'_>,
@@ -33,10 +36,14 @@ impl Mutation {
         unimplemented!()
     }
 
+    #[graphql(guard = "UserOwnsGuard::new(Table::EmoteToken, Column::UUID(uuid)).or(AdminGuard)")]
     async fn delete_token(&self, ctx: &Context<'_>, uuid: Uuid) -> Result<bool> {
         unimplemented!()
     }
 
+    #[graphql(
+        guard = "UserOwnsGuard::new(Table::EmoteDir, Column::DirSlug(slug.clone())).or(AdminGuard)"
+    )]
     async fn create_dir(
         &self,
         ctx: &Context<'_>,
@@ -45,9 +52,11 @@ impl Mutation {
     ) -> Result<EmoteDir> {
         unimplemented!()
     }
+    #[graphql(guard = "UserOwnsGuard::new(Table::EmoteDir, Column::UUID(uuid)).or(AdminGuard)")]
     async fn delete_dir(&self, ctx: &Context<'_>, uuid: Uuid) -> Result<bool> {
         unimplemented!()
     }
+    #[graphql(guard = "UserOwnsGuard::new(Table::EmoteDir, Column::UUID(dir_uuid)).or(AdminGuard)")]
     async fn add_user_to_dir(
         &self,
         ctx: &Context<'_>,
@@ -57,9 +66,11 @@ impl Mutation {
         unimplemented!()
     }
 
+    #[graphql(guard = "UserOwnsGuard::new(Table::EmoteDir, Column::UUID(dir_uuid)).or(AdminGuard)")]
     async fn upload_emote(
         &self,
         ctx: &Context<'_>,
+        dir_uuid: Uuid,
         slug: String,
         emote_file: Upload,
         emote_type: EmoteType,
@@ -68,10 +79,12 @@ impl Mutation {
     }
 
     // It will cascade and delete all emote images
+    #[graphql(guard = "UserOwnsGuard::new(Table::Emote, Column::UUID(uuid)).or(AdminGuard)")]
     async fn delete_emote(&self, ctx: &Context<'_>, uuid: Uuid) -> Result<bool> {
         unimplemented!()
     }
 
+    #[graphql(guard = "UserOwnsGuard::new(Table::Emote, Column::UUID(emote_uuid)).or(AdminGuard)")]
     async fn create_emote_image(
         &self,
         ctx: &Context<'_>,
@@ -82,6 +95,7 @@ impl Mutation {
         unimplemented!()
     }
 
+    #[graphql(guard = "UserOwnsGuard::new(Table::EmoteImage, Column::UUID(uuid)).or(AdminGuard)")]
     async fn delete_emote_image(&self, ctx: &Context<'_>, uuid: Uuid) -> Result<bool> {
         unimplemented!()
     }

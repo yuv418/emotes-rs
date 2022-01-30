@@ -193,15 +193,17 @@ impl Mutation {
         Mutation::delete_helper(result).await
     }
 
+    // manually dispatch resize
     #[graphql(guard = "UserOwnsGuard::new(Table::Emote, Column::UUID(emote_uuid)).or(AdminGuard)")]
-    async fn create_emote_image(
+    async fn dispatch_emote_image_resize(
         &self,
         ctx: &Context<'_>,
         emote_uuid: Uuid,
-        width: u64,
-        height: u64,
-    ) -> Result<EmoteImage> {
-        unimplemented!()
+        width: i32,
+        height: Option<i32>,
+    ) -> Result<bool> {
+        let pool = ctx.data::<Arc<PgPool>>()?;
+        EmoteImage::resize_image(Arc::clone(&pool), emote_uuid, width, height).await
     }
 
     #[graphql(guard = "UserOwnsGuard::new(Table::EmoteImage, Column::UUID(uuid)).or(AdminGuard)")]

@@ -9,6 +9,7 @@ use std::collections::HashMap;
 use std::path::Path;
 use std::path::PathBuf;
 use std::sync::Arc;
+use std::time::Duration;
 use std::{
     fs::{write, File},
     io::Read,
@@ -18,8 +19,11 @@ use uuid::Uuid;
 use crate::config::EMOTES_CONFIG;
 
 lazy_static! {
-    static ref VIPS: VipsApp =
-        VipsApp::new("Emotes Vips Resizer", false).expect("failed to run vips");
+    static ref VIPS: VipsApp = {
+        let app = VipsApp::new("Emotes Vips Resizer", false).expect("failed to run vips");
+        app.concurrency_set(20);
+        app
+    };
 }
 
 #[derive(Serialize, Deserialize, Debug, SimpleObject)]
@@ -94,40 +98,40 @@ impl EmoteImage {
         emote_uuid: Uuid,
         width: i32,
         height: Option<i32>, // doesn't work yet
-    ) -> Result<()> {
-        let orig_emote_image = sqlx::query_as!(
-            EmoteImage,
-            "SELECT * FROM emote_image WHERE emote_uuid = ($1) AND original = ($2)",
-            emote_uuid,
-            true
-        )
-        .fetch_one(&*pool)
-        .await?;
+    ) -> Result<bool> {
+        actix_web::rt::spawn(async move {
+            let orig_emote_image = sqlx::query_as!(
+                EmoteImage,
+                "SELECT * FROM emote_image WHERE emote_uuid = ($1) AND original = ($2)",
+                emote_uuid,
+                true
+            )
+            .fetch_one(&*pool)
+            .await?;
 
-        // get file
-        let path_for_image = Self::emote_path(
-            orig_emote_image.uuid,
-            Self::content_type_to_extension(&orig_emote_image.content_type, true)
-                .expect("failed to get emote path"),
-        )?;
+            // get file
+            let path_for_image = Self::emote_path(
+                orig_emote_image.uuid,
+                Self::content_type_to_extension(&orig_emote_image.content_type, true)
+                    .expect("failed to get emote path"),
+            )?;
 
-        let ext = Self::content_type_to_extension(&orig_emote_image.content_type, false).unwrap();
-        info!("output ext is {}", ext);
-        let ext_content_type = match ext.as_str() {
-            "gif" => "image/gif",
-            "png" => "image/png",
-            _ => return Err("webp upload is unsupported at the moment".into()), // TODO use enums so this isn't a thing
-        };
-        let resized_emote_image = sqlx::query_as!(
+            let ext =
+                Self::content_type_to_extension(&orig_emote_image.content_type, false).unwrap();
+            info!("output ext is {}", ext);
+            let ext_content_type = match ext.as_str() {
+                "gif" => "image/gif",
+                "png" => "image/png",
+                _ => return Err("webp upload is unsupported at the moment".into()), // TODO use enums so this isn't a thing
+            };
+            let resized_emote_image = sqlx::query_as!(
                 EmoteImage,
                 "INSERT INTO emote_image (emote_uuid, width, height, original, content_type, processing) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
                 emote_uuid, width, -1, false, ext_content_type, true
             ).fetch_one(&*pool).await?;
 
-        // RUN THIS ON A THREAD; it might take a long time
-        actix_web::rt::spawn(async move {
-            // TODO this is going into its own function at some point, plan for it to be bigger
-            info!("Start resizing image");
+            info!("Start resizing image; wait");
+
             let (new_width, new_height) = if let Some(height) = height {
                 unimplemented!()
             } else {
@@ -150,13 +154,13 @@ impl EmoteImage {
                 resized_emote_image.uuid,
             )
             .execute(&*pool)
-            .await
-            .unwrap();
-        })
-        .await;
+            .await?;
+
+            Ok::<(), async_graphql::Error>(())
+        });
         info!("spawned resizing image");
 
-        Ok(())
+        Ok(true) // guess it always returns true...
     }
 
     fn vips_image_resize(
@@ -166,15 +170,22 @@ impl EmoteImage {
         width: i32,
         height: Option<i32>,
     ) -> (i32, i32) {
-        let orig_vips_image = VipsImage::new_from_file(&orig_path.to_str().unwrap()).unwrap();
+        // TODO enable GIF looping
+        let vips_opts = if ext == "gif" { "[n=-1]" } else { "" };
+        let orig_vips_image =
+            VipsImage::new_from_file(&(orig_path.to_str().unwrap().to_owned() + vips_opts))
+                .unwrap();
         let resized_vips_image =
             ops::thumbnail_image(&orig_vips_image, width).expect("failed to resize image!");
 
         let width = resized_vips_image.get_width();
-        let height = resized_vips_image.get_height();
+        let height = resized_vips_image.get_page_height(); // gifs have a large regular height, we want to use the page (frame?) height
 
         let path =
             Self::emote_path(resized_uuid, ext).expect("failed to generate path for resized image");
+
+        // gif looping will only work with a forked libvips, as libvips lacks bindings to `vips_image_set`.
+
         resized_vips_image
             .image_write_to_file(path.to_str().unwrap())
             .expect("failed to write resized image");
@@ -183,8 +194,13 @@ impl EmoteImage {
     }
 
     fn emote_path(uuid: Uuid, extension: String) -> Result<PathBuf> {
-        let abs_emote_path = std::fs::canonicalize(EMOTES_CONFIG.data_dir.join("emotes"))?
-            .join(format!("{}.{}", uuid, extension));
+        let emotes_dir = EMOTES_CONFIG.data_dir.join("emotes");
+        if !emotes_dir.exists() {
+            std::fs::create_dir_all(&emotes_dir)?
+        }
+
+        let abs_emote_path =
+            std::fs::canonicalize(emotes_dir)?.join(format!("{}.{}", uuid, extension));
         info!("abs_emote_path is {:?}", abs_emote_path);
         Ok(abs_emote_path)
     }

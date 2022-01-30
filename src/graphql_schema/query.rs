@@ -11,7 +11,7 @@ pub struct Query;
 #[Object]
 impl Query {
     #[graphql(guard = "UserOwnsGuard::new(Table::EmoteUser, Column::UUID(uuid)).or(AdminGuard)")]
-    async fn user_by_uuid(&self, ctx: &Context<'_>, uuid: Uuid) -> Result<Option<EmoteUser>> {
+    pub async fn user(&self, ctx: &Context<'_>, uuid: Uuid) -> Result<Option<EmoteUser>> {
         let pool = ctx.data::<Arc<PgPool>>()?;
 
         Ok(sqlx::query_as!(

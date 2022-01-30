@@ -44,6 +44,9 @@ pub async fn api_graphql_handler(
         } else {
             err_response("Token is in invalid format; failed to convert to string").into()
         }
+    } else if *crate::graphql_schema::guards::FIRST_RUN.read().unwrap() {
+        // Handle first-run mode existing. There will be no emote user, which means you can only create a user.
+        schema.execute(graphql_request.into_inner()).await.into()
     } else {
         err_response("Missing required token field").into()
     }

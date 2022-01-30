@@ -1,11 +1,12 @@
 use async_graphql::*;
+use log::info;
 use sqlx::postgres::PgQueryResult;
 use sqlx::PgPool;
 use std::sync::Arc;
 use uuid::Uuid;
 
 use crate::graphql_schema::guards::{
-    AdminGuard, Column, Table, UserDirPrivilegedGuard, UserOwnsGuard,
+    AdminGuard, Column, FirstRunGuard, Table, UserDirPrivilegedGuard, UserOwnsGuard,
 };
 use crate::types::*;
 
@@ -25,7 +26,7 @@ impl Mutation {
 
 #[Object]
 impl Mutation {
-    #[graphql(guard = "AdminGuard")]
+    #[graphql(guard = "FirstRunGuard.or(AdminGuard)")]
     async fn create_user(
         &self,
         ctx: &Context<'_>,
@@ -33,6 +34,11 @@ impl Mutation {
         administrator: bool,
     ) -> Result<EmoteUser> {
         let pool = ctx.data::<Arc<PgPool>>()?;
+        // Disallow non-admin creation in first-run mode
+        // not administrator and is first run mode
+        if !administrator && *super::guards::FIRST_RUN.read().unwrap() {
+            return Err("You cannot make a non-admin user in first-run mode".into());
+        }
 
         Ok(sqlx::query_as!(
             EmoteUser,
@@ -55,7 +61,7 @@ impl Mutation {
     }
 
     #[graphql(
-        guard = "UserOwnsGuard::new(Table::EmoteUser, Column::UUID(user_uuid)).or(AdminGuard)"
+        guard = "FirstRunGuard.or(UserOwnsGuard::new(Table::EmoteUser, Column::UUID(user_uuid))).or(AdminGuard)"
     )]
     async fn create_token(
         &self,
@@ -64,6 +70,12 @@ impl Mutation {
         description: String,
     ) -> Result<String> {
         let pool = ctx.data::<Arc<PgPool>>()?;
+        // Disable first-run mode if enabled. The user that created the token must be an admin if first-run mode was enabled
+        // TODO do we want to do a manual check to see if the user the token is made for is an administrator?
+        if *super::guards::FIRST_RUN.read().unwrap() {
+            *super::guards::FIRST_RUN.write().unwrap() = false;
+            info!("(Admin) token generated, disabling first-run mode.");
+        }
         EmoteToken::generate(Arc::clone(&pool), user_uuid, description).await
     }
 
@@ -77,9 +89,6 @@ impl Mutation {
         Mutation::delete_helper(result).await
     }
 
-    #[graphql(
-        guard = "UserOwnsGuard::new(Table::EmoteDir, Column::DirSlug(slug.clone())).or(AdminGuard)"
-    )]
     async fn create_dir(
         &self,
         ctx: &Context<'_>,

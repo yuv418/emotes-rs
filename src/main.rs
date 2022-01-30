@@ -50,6 +50,23 @@ async fn main() -> Result<()> {
         .await
         .with_context(|| "Failed to migrate the database!")?;
 
+    // Configure first-run mode by checking how many administrator users **with tokens** are in the database
+    if let Some(count) = sqlx::query!(
+        "SELECT COUNT(emote_token.uuid) as count FROM emote_token INNER JOIN emote_user ON emote_user.uuid = emote_token.emote_user_uuid WHERE emote_user.administrator = ($1)",
+        true
+    )
+    .fetch_one(&*db_pool)
+    .await?
+    .count
+    {
+        if count < 1 {
+            info!("There are no admin user tokens in the database. Enabling first-run mode.");
+            *graphql_schema::guards::FIRST_RUN.write().unwrap() = true;
+        } else {
+            info!("Disabling first-run mode, there are emote users in the database.");
+        }
+    }
+
     info!("Database connection success, starting up actix");
 
     let schema = Schema::build(

@@ -52,6 +52,7 @@ impl Query {
     async fn all_dirs(&self, ctx: &Context<'_>) -> Result<Vec<EmoteDir>> {
         Ok(vec![])
     }
+    // TODO add verbs for directory privileges
 
     #[graphql(guard = "UserOwnsGuard::new(Table::Emote, Column::UUID(uuid)).or(AdminGuard)")]
     async fn emote(&self, ctx: &Context<'_>, uuid: Uuid) -> Result<Emote> {

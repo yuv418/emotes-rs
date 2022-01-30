@@ -73,6 +73,7 @@ pub struct EmoteDir {
     pub create_time: DateTime<Utc>,
     pub modify_time: Option<DateTime<Utc>>,
 }
+// TODO add regular impl to check if user (by uuid) is privileged for this dir
 #[ComplexObject]
 impl EmoteDir {
     // Dealing with many-to-many relationship here

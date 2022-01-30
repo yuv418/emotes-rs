@@ -1,7 +1,6 @@
 use async_graphql::*;
 use sqlx::postgres::PgQueryResult;
 use sqlx::PgPool;
-use std::fs::File;
 use std::sync::Arc;
 use uuid::Uuid;
 

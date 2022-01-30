@@ -24,4 +24,7 @@ async-trait = "0.1"
 actix-cors = "0.6.0-beta"
 http = "0.2"
 base64 = "0.13"
+argon2 = "0.3"
+rand = "0.8"
+
 # TODO add forked vips-sys support

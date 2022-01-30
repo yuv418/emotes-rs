@@ -1,4 +1,5 @@
 use async_graphql::*;
+use sqlx::PgPool;
 use std::sync::Arc;
 use uuid::Uuid;
 
@@ -29,12 +30,24 @@ impl Query {
     }
 
     #[graphql(guard = "UserOwnsGuard::new(Table::EmoteToken, Column::UUID(uuid)).or(AdminGuard)")]
-    async fn token(&self, ctx: &Context<'_>, uuid: Uuid) -> Result<EmoteToken> {
-        unimplemented!()
+    async fn token(&self, ctx: &Context<'_>, uuid: Uuid) -> Result<Option<EmoteToken>> {
+        let pool = ctx.data::<Arc<PgPool>>()?;
+
+        Ok(sqlx::query_as!(
+            EmoteToken,
+            "SELECT * FROM emote_token WHERE uuid = ($1)",
+            uuid
+        )
+        .fetch_optional(&**pool)
+        .await?)
     }
     #[graphql(guard = "AdminGuard")]
-    async fn all_tokens(&self, ctx: &Context<'_>) -> Result<EmoteToken> {
-        unimplemented!()
+    async fn all_tokens(&self, ctx: &Context<'_>) -> Result<Vec<EmoteToken>> {
+        let pool = ctx.data::<Arc<PgPool>>()?;
+
+        Ok(sqlx::query_as!(EmoteToken, "SELECT * FROM emote_token")
+            .fetch_all(&**pool)
+            .await?)
     }
 
     #[graphql(guard = "UserOwnsGuard::new(Table::EmoteDir, Column::UUID(uuid)).or(AdminGuard)")]

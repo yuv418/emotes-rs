@@ -61,13 +61,19 @@ impl Mutation {
         ctx: &Context<'_>,
         user_uuid: Uuid,
         description: String,
-    ) -> Result<EmoteToken> {
-        unimplemented!()
+    ) -> Result<String> {
+        let pool = ctx.data::<Arc<PgPool>>()?;
+        EmoteToken::generate(Arc::clone(&pool), user_uuid, description).await
     }
 
     #[graphql(guard = "UserOwnsGuard::new(Table::EmoteToken, Column::UUID(uuid)).or(AdminGuard)")]
     async fn delete_token(&self, ctx: &Context<'_>, uuid: Uuid) -> Result<bool> {
-        unimplemented!()
+        let pool = ctx.data::<Arc<PgPool>>()?;
+        let result = sqlx::query!("DELETE FROM emote_token WHERE uuid = ($1)", uuid)
+            .execute(&**pool)
+            .await?;
+
+        Mutation::delete_helper(result).await
     }
 
     #[graphql(

@@ -79,6 +79,24 @@ pub struct EmoteDir {
     pub create_time: DateTime<Utc>,
     pub modify_time: Option<DateTime<Utc>>,
 }
+
+impl EmoteDir {
+    pub async fn user_privileged_for_dir(
+        pool: Arc<PgPool>,
+        user_uuid: Uuid,
+        dir_uuid: Uuid,
+    ) -> Result<bool> {
+        if let Some(val) = 
+            sqlx::query!("SELECT privileged FROM emote_user_emote_dir WHERE emote_user_uuid = ($1) AND emote_dir_uuid = ($2)", user_uuid, dir_uuid)
+                .fetch_optional(&*pool)
+                .await? {
+                    return Ok(val.privileged);
+                }
+
+        Ok(false)
+    }
+}
+
 // TODO add regular impl to check if user (by uuid) is privileged for this dir
 #[ComplexObject]
 impl EmoteDir {

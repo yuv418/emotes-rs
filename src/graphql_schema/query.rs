@@ -101,6 +101,17 @@ impl Query {
             .fetch_all(&**pool)
             .await?)
     }
+    #[graphql(guard = "UserOwnsGuard::new(Table::EmoteDir, Column::UUID(dir_uuid)).or(AdminGuard)")]
+    async fn user_privileged_for_dir(
+        &self,
+        ctx: &Context<'_>,
+        user_uuid: Uuid,
+        dir_uuid: Uuid,
+    ) -> Result<bool> {
+        let pool = ctx.data::<Arc<PgPool>>()?;
+        EmoteDir::user_privileged_for_dir(Arc::clone(&pool), user_uuid, dir_uuid).await
+    }
+
     // TODO add verbs for directory privileges
 
     #[graphql(guard = "UserOwnsGuard::new(Table::Emote, Column::UUID(uuid)).or(AdminGuard)")]

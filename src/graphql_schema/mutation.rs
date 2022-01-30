@@ -5,7 +5,9 @@ use std::fs::File;
 use std::sync::Arc;
 use uuid::Uuid;
 
-use crate::graphql_schema::guards::{AdminGuard, Column, Table, UserOwnsGuard};
+use crate::graphql_schema::guards::{
+    AdminGuard, Column, Table, UserDirPrivilegedGuard, UserOwnsGuard,
+};
 use crate::types::*;
 
 pub struct Mutation;
@@ -85,9 +87,25 @@ impl Mutation {
         slug: String,
         emote_user_uuid: Uuid,
     ) -> Result<EmoteDir> {
-        unimplemented!()
+        let pool = ctx.data::<Arc<PgPool>>()?;
+        let emote_dir: EmoteDir = sqlx::query_as!(
+            EmoteDir,
+            "INSERT INTO emote_dir (slug) VALUES ($1) RETURNING *",
+            slug
+        )
+        .fetch_one(&**pool)
+        .await?;
+
+        // insert relation for user. Privileged since creator.
+        let result = sqlx::query!("INSERT INTO emote_user_emote_dir (emote_user_uuid, emote_dir_uuid, privileged) VALUES ($1, $2, $3)", emote_user_uuid, emote_dir.uuid, true).execute(&**pool).await?;
+        if let Ok(true) = Mutation::delete_helper(result).await {
+            Ok(emote_dir)
+        } else {
+            // TODO rollback
+            Err("failed to insert emote_dir".into())
+        }
     }
-    #[graphql(guard = "UserOwnsGuard::new(Table::EmoteDir, Column::UUID(uuid)).or(AdminGuard)")]
+    #[graphql(guard = "UserDirPrivilegedGuard::new(uuid).or(AdminGuard)")]
     async fn delete_dir(&self, ctx: &Context<'_>, uuid: Uuid) -> Result<bool> {
         let pool = ctx.data::<Arc<PgPool>>()?;
         // No cascade, so I don't really know if this will work. The only way this will be allowed to work is if only one person owns the directory
@@ -102,7 +120,8 @@ impl Mutation {
         // TODO delete from the data dir as well
         Mutation::delete_helper(result).await
     }
-    #[graphql(guard = "UserOwnsGuard::new(Table::EmoteDir, Column::UUID(dir_uuid)).or(AdminGuard)")]
+
+    #[graphql(guard = "UserDirPrivilegedGuard::new(dir_uuid).or(AdminGuard)")]
     async fn add_user_to_dir(
         &self,
         ctx: &Context<'_>,
@@ -125,6 +144,7 @@ impl Mutation {
     }
 
     // It will cascade and delete all emote images
+    // TODO do we want to let anyone do this, or only privileged dir owners?
     #[graphql(guard = "UserOwnsGuard::new(Table::Emote, Column::UUID(uuid)).or(AdminGuard)")]
     async fn delete_emote(&self, ctx: &Context<'_>, uuid: Uuid) -> Result<bool> {
         let pool = ctx.data::<Arc<PgPool>>()?;

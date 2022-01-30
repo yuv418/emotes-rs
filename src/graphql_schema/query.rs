@@ -153,16 +153,7 @@ impl Query {
         height: i32,
     ) -> Result<Option<EmoteImage>> {
         let pool = ctx.data::<Arc<PgPool>>()?;
-
-        Ok(sqlx::query_as!(
-            EmoteImage,
-            "SELECT * FROM emote_image WHERE emote_uuid = ($1) AND width = ($2) AND height = ($3)",
-            emote_uuid,
-            width,
-            height
-        )
-        .fetch_optional(&**pool)
-        .await?)
+        EmoteImage::by_emote_and_size(Arc::clone(&pool), emote_uuid, width, height).await
     }
     #[graphql(guard = "AdminGuard")]
     async fn all_emote_images(&self, ctx: &Context<'_>) -> Result<Vec<EmoteImage>> {

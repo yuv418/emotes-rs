@@ -4,10 +4,8 @@ use anyhow::{Context, Result};
 use async_graphql::EmptySubscription;
 use async_graphql::Schema;
 use dotenv::dotenv;
-use lazy_static::lazy_static;
 use log::*;
 use sqlx::postgres::PgPoolOptions;
-use std::fs::File;
 use std::sync::Arc;
 
 mod config;
@@ -15,19 +13,7 @@ mod graphql_schema;
 mod handler;
 mod types;
 
-lazy_static! {
-    static ref EMOTES_CONFIG: config::EmotesConfig = serde_json::from_reader(
-        File::open(
-            &dotenv::var("EMOTES_CONFIG_FILE")
-                .with_context(|| "Failed to read emotes config file env-var")
-                .unwrap()
-        )
-        .with_context(|| "Failed to open specified emotes config file")
-        .unwrap()
-    )
-    .with_context(|| "Failed to parse specified emotes config file")
-    .unwrap();
-}
+use config::EMOTES_CONFIG;
 
 // A lot of this is copied from attendance-rs
 #[actix_web::main]

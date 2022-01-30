@@ -1,4 +1,4 @@
-use async_graphql::*;
+use async_graphql::{types::UploadValue, *};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
@@ -11,8 +11,7 @@ use crate::graphql_schema::guards::{Column, UserOwnership};
 #[derive(sqlx::Type, Serialize, Deserialize, Debug, Copy, Clone, PartialEq, Eq, Enum)]
 #[sqlx(type_name = "emote_type", rename_all = "lowercase")]
 pub enum EmoteType {
-    Animated,
-    Still,
+    Standard, // small size
     Sticker,
 }
 
@@ -66,6 +65,33 @@ impl Emote {
             Emote,
             "SELECT emote.uuid, emote.slug, emote_dir_uuid, emote_type as \"emote_type!: EmoteType\", emote.create_time, emote.modify_time FROM emote INNER JOIN emote_dir ON emote.emote_dir_uuid = emote_dir.uuid WHERE emote_dir.slug= ($1) AND emote.slug = ($2)",
             emote_parts[0], emote_parts[1]).fetch_optional(&*pool).await?)
+    }
+
+    pub async fn insert(
+        pool: Arc<PgPool>,
+        dir_uuid: Uuid,
+        slug: String,
+        upload_value: UploadValue,
+        emote_type: EmoteType,
+    ) -> Result<Emote> {
+        if let None = upload_value.content_type {
+            return Err("invalid content type".into());
+        }
+        let emote = sqlx::query_as!(Emote, "INSERT INTO emote (slug, emote_dir_uuid, emote_type) VALUES ($1, $2, $3) RETURNING emote.uuid, emote.slug, emote_dir_uuid, emote_type as \"emote_type!: EmoteType\", emote.create_time, emote.modify_time",
+                                        slug,
+                                        dir_uuid,
+                                        emote_type as EmoteType).fetch_one(&*pool).await?;
+
+        // TODO create emote images here, the magic fun code
+        EmoteImage::create_from_original(
+            pool,
+            emote.uuid,
+            upload_value.content_type.unwrap(), // this is safe since we already checked this
+            upload_value.content,
+        )
+        .await?;
+
+        Ok(emote)
     }
 }
 

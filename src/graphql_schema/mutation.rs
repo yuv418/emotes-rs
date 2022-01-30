@@ -175,7 +175,9 @@ impl Mutation {
         emote_file: Upload,
         emote_type: EmoteType,
     ) -> Result<Emote> {
-        unimplemented!()
+        let pool = ctx.data::<Arc<PgPool>>()?;
+        let file_value = emote_file.value(ctx)?;
+        Emote::insert(Arc::clone(&pool), dir_uuid, slug, file_value, emote_type).await
     }
 
     // It will cascade and delete all emote images

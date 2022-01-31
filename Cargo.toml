@@ -27,4 +27,3 @@ base64 = "0.13"
 argon2 = "0.3"
 rand = "0.8"
 libvips = "1"
-# TODO add forked vips-sys support

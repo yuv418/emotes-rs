@@ -211,7 +211,7 @@ impl EmoteImage {
         width: i32,
         height: Option<i32>,
     ) -> (PathBuf, i32, i32) {
-        // TODO enable GIF looping
+        // looping is set by default
         let vips_opts = if ext == "gif" { "[n=-1]" } else { "" };
         let orig_vips_image =
             VipsImage::new_from_file(&(orig_path.to_str().unwrap().to_owned() + vips_opts))

@@ -1,5 +1,9 @@
 use actix_cors::Cors;
-use actix_web::{guard, middleware::Logger, web, App, HttpServer};
+use actix_web::{
+    guard,
+    middleware::{Logger, NormalizePath},
+    web, App, HttpServer,
+};
 use anyhow::{Context, Result};
 use async_graphql::EmptySubscription;
 use async_graphql::Schema;
@@ -79,6 +83,7 @@ async fn main() -> Result<()> {
             .app_data(web::Data::new(schema.clone()))
             .wrap(cors)
             .wrap(Logger::default())
+            .wrap(NormalizePath::trim())
             .service(
                 web::resource("/api")
                     .guard(guard::Post())
@@ -90,9 +95,12 @@ async fn main() -> Result<()> {
                     .to(handler::graphql_playground),
             )
             .service(
-                web::resource("/{slug}/{emote_slug}")
-                    .guard(guard::Get())
-                    .to(handler::emote_display),
+                web::resource([
+                    "/{dir_slug}/{emote_slug}",
+                    "/{dir_slug}/{emote_slug}/{options}",
+                ])
+                .guard(guard::Get())
+                .to(handler::emote_display_handler),
             )
         // TODO add one for actually getting the emotes
     })

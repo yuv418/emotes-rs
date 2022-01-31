@@ -44,10 +44,27 @@ pub struct EmoteImage {
 }
 
 impl EmoteImage {
+    pub fn get_file(&self) -> anyhow::Result<File> {
+        use std::io::{Error, ErrorKind};
+        let emote_path = Self::emote_path(
+            self.uuid,
+            Self::content_type_to_extension(&self.content_type, false).map_err(|x| {
+                Error::new(
+                    ErrorKind::Other,
+                    "Failed to convert emote image's content type to its extension for reading",
+                )
+            })?,
+        )
+        .map_err(|x| Error::new(ErrorKind::Other, "Failed to get path for emote"))?;
+
+        Ok(File::open(&emote_path)?)
+    }
+
     fn vips_get_width_height(buf: &[u8]) -> Result<(i32, i32)> {
         let image = VipsImage::new_from_buffer(&buf, "")?; // the options are for transparent GIFs
         Ok((image.get_width(), image.get_height()))
     }
+
     pub async fn create_from_original(
         pool: Arc<PgPool>,
         emote_uuid: Uuid,
@@ -133,7 +150,7 @@ impl EmoteImage {
             info!("Start resizing image; wait");
 
             let (out_path, new_width, new_height) = if let Some(height) = height {
-                unimplemented!()
+                unimplemented!("height rescale not implemented")
             } else {
                 Self::vips_image_resize(
                     path_for_image,
@@ -229,21 +246,33 @@ impl EmoteImage {
         Ok(abs_emote_path)
     }
 
+    // TODO add multiplier
     pub async fn by_emote_and_size(
         pool: Arc<PgPool>,
         emote_uuid: Uuid,
         width: i32,
-        height: i32,
+        height: Option<i32>,
     ) -> Result<Option<EmoteImage>> {
-        Ok(sqlx::query_as!(
-            EmoteImage,
-            "SELECT * FROM emote_image WHERE emote_uuid = ($1) AND width = ($2) AND height = ($3)",
-            emote_uuid,
-            width,
-            height
-        )
-        .fetch_optional(&*pool)
-        .await?)
+        if let Some(height) = height {
+            Ok(sqlx::query_as!(
+                EmoteImage,
+                "SELECT * FROM emote_image WHERE emote_uuid = ($1) AND width = ($2) AND height = ($3)",
+                emote_uuid,
+                width,
+                height
+            )
+            .fetch_optional(&*pool)
+            .await?)
+        } else {
+            Ok(sqlx::query_as!(
+                EmoteImage,
+                "SELECT * FROM emote_image WHERE emote_uuid = ($1) AND width = ($2)",
+                emote_uuid,
+                width,
+            )
+            .fetch_optional(&*pool)
+            .await?)
+        }
     }
 
     fn save_vips_image(vips_image_bytes: &[u8], uuid: Uuid, extension: String) -> Result<()> {

@@ -10,6 +10,7 @@ use sqlx::PgPool;
 use std::sync::Arc;
 
 use crate::types::*;
+use log::info;
 
 use crate::graphql_schema::{mutation::Mutation, query::Query};
 
@@ -51,11 +52,127 @@ pub async fn api_graphql_handler(
         err_response("Missing required token field").into()
     }
 }
+pub async fn emote_display_handler(
+    request: HttpRequest,
+    pool: web::Data<Arc<PgPool>>,
+) -> HttpResponse {
+    let dir_slug = request.match_info().get("dir_slug").unwrap();
+    let emote_slug = request.match_info().get("emote_slug").unwrap();
+    let options = request.match_info().get("options").map(|x| x.to_owned());
+    emote_display(pool, dir_slug.to_owned(), emote_slug.to_owned(), options).await
+}
 
-pub async fn emote_display(
+async fn emote_display(
     pool: web::Data<Arc<PgPool>>,
     dir_slug: String,
     emote_slug: String,
+    options: Option<String>,
 ) -> HttpResponse {
-    HttpResponse::Ok().body("hi")
+    use std::io::Read;
+    info!(
+        "requested an emote:\n\tdir_slug: {}\n\temote_slug: {}\n\toptions: {:?}",
+        dir_slug, emote_slug, options
+    );
+
+    // Discord only renders gifs if the URL ends with .gif
+    let emote_slug = if options.is_none() && emote_slug.ends_with(".gif") {
+        emote_slug.trim_end_matches(".gif").to_owned()
+    } else {
+        emote_slug
+    };
+
+    let options = if let Some(options) = options {
+        if options.ends_with(".gif") {
+            Some(options.trim_end_matches(".gif").to_owned())
+        } else {
+            Some(options)
+        }
+    } else {
+        options
+    };
+
+    if let Ok(Some(emote)) = Emote::by_slug(Arc::clone(&pool), dir_slug + "/" + &emote_slug).await {
+        let (mut width, mut height, mut multiplier) = match emote.emote_type {
+            EmoteType::Standard => (64, None, 1), // height is automatic
+            EmoteType::Sticker => (256, None, 1),
+        };
+
+        // Parse options
+        // TODO rework this
+        if let Some(options) = options {
+            let options: Vec<&str> = options.split("x").collect();
+            if options.len() == 1 {
+                // just width
+                width = options[0].parse().unwrap();
+            } else if options.len() == 2 {
+                if options[0] == "" {
+                    // multiplier format: "x10"
+                    multiplier = options[1].parse().unwrap();
+                } else {
+                    width = options[0].parse().unwrap();
+                    // you could do 64xx10 and that would omit height
+                    height = if options[1] != "" {
+                        Some(options[1].parse().unwrap())
+                    } else {
+                        None
+                    };
+                }
+            } else if options.len() == 3 {
+                width = options[0].parse().unwrap();
+                height = Some(options[1].parse().unwrap());
+                multiplier = options[2].parse().unwrap();
+            }
+        }
+
+        // right now, multiplier does nothing
+
+        let corresponding_emote_image =
+            EmoteImage::by_emote_and_size(Arc::clone(&pool), emote.uuid, width, height).await;
+        if let Ok(None) = corresponding_emote_image {
+            if let Ok(true) =
+                EmoteImage::resize_image(Arc::clone(&pool), emote.uuid, width, height).await
+            {
+                return HttpResponse::NotFound().json(EmoteMsg::new(
+                    "Emote was not created in that size. Emote resizer dispatched.",
+                ));
+            };
+        } else if let Ok(Some(image)) = corresponding_emote_image {
+            if image.processing {
+                return HttpResponse::NotFound()
+                    .json(EmoteMsg::new("Emote resizer is processing this emote."));
+            }
+
+            return HttpResponse::Ok().content_type(&*image.content_type).body(
+                if let Ok(mut file) = image.get_file() {
+                    let mut emote_bytes = vec![];
+                    if let Err(_) = file.read_to_end(&mut emote_bytes) {
+                        return HttpResponse::InternalServerError().json(EmoteMsg::new(
+                            "Failed to read file for emote. You should delete this emote.",
+                        ));
+                    };
+                    emote_bytes
+                } else {
+                    return HttpResponse::InternalServerError().json(EmoteMsg::new(
+                        "Failed to open file for emote. You should delete this emote.",
+                    ));
+                },
+            );
+        }
+    }
+
+    HttpResponse::NotFound().json(EmoteMsg::new("Emote not found")) // TODO use JSON
+}
+
+use serde::Serialize;
+
+#[derive(Serialize)]
+pub struct EmoteMsg {
+    msg: String,
+}
+impl EmoteMsg {
+    pub fn new(msg: &str) -> Self {
+        Self {
+            msg: msg.to_owned(),
+        }
+    }
 }

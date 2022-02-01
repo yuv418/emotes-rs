@@ -4,13 +4,11 @@ FROM rust:alpine
 WORKDIR /build
 COPY . /build
 ENV SQLX_OFFLINE true
-RUN apk add musl-dev openssl-dev
+RUN apk add musl-dev openssl-dev vips-dev
 RUN cargo build --release
 RUN cargo install sqlx-cli
-
-FROM busybox
-COPY --from=0 /usr/local/cargo/bin/sqlx /sqlx
-COPY --from=0 /build/migrations /migrations
-COPY --from=0 /build/target/release/attendance-rs /attendance-rs
-COPY --from=0 /build/attendance-rs-startup.sh /attendance-rs-startup.sh
-CMD ["/attendance-rs-startup.sh"]
+RUN cp /usr/local/cargo/bin/sqlx /sqlx
+RUN cp /build/migrations /migrations
+RUN cp /build/target/release/emotes-rs /emotes-rs
+RUN cp /build/emotes-rs-startup.sh /emotes-rs-startup.sh
+CMD ["/emotes-rs-startup.sh"]

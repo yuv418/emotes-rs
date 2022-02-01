@@ -1,0 +1,1834 @@
+{
+  "db": "PostgreSQL",
+  "0120c1c4b62e7253fb0e27c244fe639e390251d3269da1e3d7b8409b7eace609": {
+    "query": "SELECT * FROM emote_user WHERE uuid=($1)",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "uuid",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 1,
+          "name": "username",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 2,
+          "name": "administrator",
+          "type_info": "Bool"
+        },
+        {
+          "ordinal": 3,
+          "name": "create_time",
+          "type_info": "Timestamptz"
+        },
+        {
+          "ordinal": 4,
+          "name": "modify_time",
+          "type_info": "Timestamptz"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        true
+      ]
+    }
+  },
+  "03bb64fe2b5873dc748790857aa77db6fbc98d882814039ada2033fc30ed3482": {
+    "query": "DELETE FROM emote_image WHERE uuid = ($1)",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Uuid"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "043ebd32f1ee4c7ccc131c5b4ec4c966fca76d9db65fe91057ff5cfbace1f513": {
+    "query": "SELECT COUNT(emote_token.uuid) as count FROM emote_token INNER JOIN emote_user ON emote_user.uuid = emote_token.emote_user_uuid WHERE emote_user.administrator = ($1)",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "count",
+          "type_info": "Int8"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Bool"
+        ]
+      },
+      "nullable": [
+        null
+      ]
+    }
+  },
+  "07e8b3a94dc73d595b93ce2e2eedd143e7c0f1d1029567bb7d66cb4e738226da": {
+    "query": "DELETE FROM emote_token WHERE uuid = ($1)",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Uuid"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "10e064c3a665760925c8aa4f699a634da136dff83fdd8ed717ce5bc293c08b45": {
+    "query": "INSERT INTO emote_user_emote_dir (emote_user_uuid, emote_dir_uuid, privileged) VALUES ($1, $2, $3)",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Uuid",
+          "Uuid",
+          "Bool"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "19f99b3a8ed8e7352273c00204a8e390378fe5e61f0b05af852d8ca4c0e4572a": {
+    "query": "DELETE FROM emote_user WHERE uuid = ($1)",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Uuid"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "1cdc29e621f80c931371b485b601f8e4687e1346f6654aa1b7fe01af72954c01": {
+    "query": "SELECT * FROM emote_dir WHERE slug = ($1)",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "uuid",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 1,
+          "name": "slug",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 2,
+          "name": "create_time",
+          "type_info": "Timestamptz"
+        },
+        {
+          "ordinal": 3,
+          "name": "modify_time",
+          "type_info": "Timestamptz"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        true
+      ]
+    }
+  },
+  "1d86f1964871d5167c729897893008651fa6b025cfd31fe8a12bc7634e92cd95": {
+    "query": "SELECT * FROM emote_user WHERE uuid = ($1)",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "uuid",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 1,
+          "name": "username",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 2,
+          "name": "administrator",
+          "type_info": "Bool"
+        },
+        {
+          "ordinal": 3,
+          "name": "create_time",
+          "type_info": "Timestamptz"
+        },
+        {
+          "ordinal": 4,
+          "name": "modify_time",
+          "type_info": "Timestamptz"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        true
+      ]
+    }
+  },
+  "22fe0c3f737a7d0471d9ba0cfb41c976da8da900a394d2c778ae448730683327": {
+    "query": "INSERT INTO emote_image (width, height, original, content_type, emote_uuid) VALUES ($1, $2, $3, $4, $5) RETURNING *",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "uuid",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 1,
+          "name": "width",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 2,
+          "name": "height",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 3,
+          "name": "emote_uuid",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 4,
+          "name": "create_time",
+          "type_info": "Timestamptz"
+        },
+        {
+          "ordinal": 5,
+          "name": "modify_time",
+          "type_info": "Timestamptz"
+        },
+        {
+          "ordinal": 6,
+          "name": "processing",
+          "type_info": "Bool"
+        },
+        {
+          "ordinal": 7,
+          "name": "original",
+          "type_info": "Bool"
+        },
+        {
+          "ordinal": 8,
+          "name": "content_type",
+          "type_info": "Text"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Int4",
+          "Int4",
+          "Bool",
+          "Text",
+          "Uuid"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        true,
+        false,
+        false,
+        false
+      ]
+    }
+  },
+  "2b889ce28d2c454b2e39516fe1e6746d5c34e675a1368011c129719f4e3eb357": {
+    "query": "INSERT INTO emote_image (emote_uuid, width, height, original, content_type, processing) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "uuid",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 1,
+          "name": "width",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 2,
+          "name": "height",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 3,
+          "name": "emote_uuid",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 4,
+          "name": "create_time",
+          "type_info": "Timestamptz"
+        },
+        {
+          "ordinal": 5,
+          "name": "modify_time",
+          "type_info": "Timestamptz"
+        },
+        {
+          "ordinal": 6,
+          "name": "processing",
+          "type_info": "Bool"
+        },
+        {
+          "ordinal": 7,
+          "name": "original",
+          "type_info": "Bool"
+        },
+        {
+          "ordinal": 8,
+          "name": "content_type",
+          "type_info": "Text"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid",
+          "Int4",
+          "Int4",
+          "Bool",
+          "Text",
+          "Bool"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        true,
+        false,
+        false,
+        false
+      ]
+    }
+  },
+  "2d5174a4b2d26903be81aeed0f7261ccdd1ed9b8239c7117d719b17694ee4792": {
+    "query": "INSERT INTO emote (slug, emote_dir_uuid, emote_type) VALUES ($1, $2, $3) RETURNING emote.uuid, emote.slug, emote_dir_uuid, emote_type as \"emote_type!: EmoteType\", emote.create_time, emote.modify_time",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "uuid",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 1,
+          "name": "slug",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 2,
+          "name": "emote_dir_uuid",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 3,
+          "name": "emote_type!: EmoteType",
+          "type_info": {
+            "Custom": {
+              "name": "emote_type",
+              "kind": {
+                "Enum": [
+                  "standard",
+                  "sticker"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "ordinal": 4,
+          "name": "create_time",
+          "type_info": "Timestamptz"
+        },
+        {
+          "ordinal": 5,
+          "name": "modify_time",
+          "type_info": "Timestamptz"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Varchar",
+          "Uuid",
+          {
+            "Custom": {
+              "name": "emote_type",
+              "kind": {
+                "Enum": [
+                  "standard",
+                  "sticker"
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        true
+      ]
+    }
+  },
+  "30b49d49584a680c0839926dc64ea6d4a73c91bbf644d04adf320a3ce9ddc645": {
+    "query": "SELECT privileged FROM emote_user_emote_dir WHERE emote_user_uuid = ($1) AND emote_dir_uuid = ($2)",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "privileged",
+          "type_info": "Bool"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid",
+          "Uuid"
+        ]
+      },
+      "nullable": [
+        false
+      ]
+    }
+  },
+  "379bb669860e286eaaef6cb20ac7af853fca2e3f436bad79814a23d3920a9744": {
+    "query": "SELECT * FROM emote_image WHERE uuid = ($1)",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "uuid",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 1,
+          "name": "width",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 2,
+          "name": "height",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 3,
+          "name": "emote_uuid",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 4,
+          "name": "create_time",
+          "type_info": "Timestamptz"
+        },
+        {
+          "ordinal": 5,
+          "name": "modify_time",
+          "type_info": "Timestamptz"
+        },
+        {
+          "ordinal": 6,
+          "name": "processing",
+          "type_info": "Bool"
+        },
+        {
+          "ordinal": 7,
+          "name": "original",
+          "type_info": "Bool"
+        },
+        {
+          "ordinal": 8,
+          "name": "content_type",
+          "type_info": "Text"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        true,
+        false,
+        false,
+        false
+      ]
+    }
+  },
+  "38d4c3c8754dd89014d20cad46e1d47387e176c24da3dd6c80ad8daa3599b36c": {
+    "query": "SELECT emote_dir.* FROM emote_dir INNER JOIN emote_user_emote_dir e ON e.emote_dir_uuid = uuid WHERE e.emote_user_uuid = ($1)",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "uuid",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 1,
+          "name": "slug",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 2,
+          "name": "create_time",
+          "type_info": "Timestamptz"
+        },
+        {
+          "ordinal": 3,
+          "name": "modify_time",
+          "type_info": "Timestamptz"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        true
+      ]
+    }
+  },
+  "40d8808fad767942ceaacdf1fabe21bdb3c6966f90d91e0d629fdee59b1fd55c": {
+    "query": "SELECT * FROM emote_image WHERE emote_uuid = ($1) AND width = ($2) AND height = ($3)",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "uuid",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 1,
+          "name": "width",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 2,
+          "name": "height",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 3,
+          "name": "emote_uuid",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 4,
+          "name": "create_time",
+          "type_info": "Timestamptz"
+        },
+        {
+          "ordinal": 5,
+          "name": "modify_time",
+          "type_info": "Timestamptz"
+        },
+        {
+          "ordinal": 6,
+          "name": "processing",
+          "type_info": "Bool"
+        },
+        {
+          "ordinal": 7,
+          "name": "original",
+          "type_info": "Bool"
+        },
+        {
+          "ordinal": 8,
+          "name": "content_type",
+          "type_info": "Text"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid",
+          "Int4",
+          "Int4"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        true,
+        false,
+        false,
+        false
+      ]
+    }
+  },
+  "4738801f378a68b7019fb1cb66c0d296a7a6b82b87af13365069ce14c9a39c18": {
+    "query": "SELECT * FROM emote_image WHERE emote_uuid = ($1) AND width = ($2)",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "uuid",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 1,
+          "name": "width",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 2,
+          "name": "height",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 3,
+          "name": "emote_uuid",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 4,
+          "name": "create_time",
+          "type_info": "Timestamptz"
+        },
+        {
+          "ordinal": 5,
+          "name": "modify_time",
+          "type_info": "Timestamptz"
+        },
+        {
+          "ordinal": 6,
+          "name": "processing",
+          "type_info": "Bool"
+        },
+        {
+          "ordinal": 7,
+          "name": "original",
+          "type_info": "Bool"
+        },
+        {
+          "ordinal": 8,
+          "name": "content_type",
+          "type_info": "Text"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid",
+          "Int4"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        true,
+        false,
+        false,
+        false
+      ]
+    }
+  },
+  "47547417705817678dcf9487cd3cfabeca2bc0a83f43301d91a1a1112a11d357": {
+    "query": "INSERT INTO emote_dir (slug) VALUES ($1) RETURNING *",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "uuid",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 1,
+          "name": "slug",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 2,
+          "name": "create_time",
+          "type_info": "Timestamptz"
+        },
+        {
+          "ordinal": 3,
+          "name": "modify_time",
+          "type_info": "Timestamptz"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Varchar"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        true
+      ]
+    }
+  },
+  "4b8f38ee524745130c045b596b3c83aad4a27bad8f2f142dadf90f30b29a1026": {
+    "query": "SELECT emote_user.uuid FROM emote_user INNER JOIN emote_user_emote_dir e ON e.emote_user_uuid = uuid WHERE e.emote_dir_uuid = ($1) AND emote_user.uuid = ($2)",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "uuid",
+          "type_info": "Uuid"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid",
+          "Uuid"
+        ]
+      },
+      "nullable": [
+        false
+      ]
+    }
+  },
+  "4f538888f1acd04476654b00e1532dcf9990c656bc447321a3ddc9903c7daa8c": {
+    "query": "SELECT * FROM emote_image WHERE emote_uuid = ($1) AND original = ($2)",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "uuid",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 1,
+          "name": "width",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 2,
+          "name": "height",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 3,
+          "name": "emote_uuid",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 4,
+          "name": "create_time",
+          "type_info": "Timestamptz"
+        },
+        {
+          "ordinal": 5,
+          "name": "modify_time",
+          "type_info": "Timestamptz"
+        },
+        {
+          "ordinal": 6,
+          "name": "processing",
+          "type_info": "Bool"
+        },
+        {
+          "ordinal": 7,
+          "name": "original",
+          "type_info": "Bool"
+        },
+        {
+          "ordinal": 8,
+          "name": "content_type",
+          "type_info": "Text"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid",
+          "Bool"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        true,
+        false,
+        false,
+        false
+      ]
+    }
+  },
+  "514b1da8e9589ce67868a9875d78774fa020059743f828eb6223b5d7a63b39a7": {
+    "query": "SELECT * FROM emote_token WHERE uuid=($1)",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "uuid",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 1,
+          "name": "emote_user_uuid",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 2,
+          "name": "description",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 3,
+          "name": "token_hash",
+          "type_info": "Text"
+        },
+        {
+          "ordinal": 4,
+          "name": "create_time",
+          "type_info": "Timestamptz"
+        },
+        {
+          "ordinal": 5,
+          "name": "modify_time",
+          "type_info": "Timestamptz"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        true
+      ]
+    }
+  },
+  "556f5aec5bf536c2eb864e45f8dfe0a0613ab4721d78ed6622dfa63f9ad876c0": {
+    "query": "SELECT uuid FROM emote_dir WHERE slug=($1)",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "uuid",
+          "type_info": "Uuid"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      },
+      "nullable": [
+        false
+      ]
+    }
+  },
+  "5c58e5a38081fd9472adfd363ad147e9c101ddb94977a530977102d4ca0ca8e0": {
+    "query": "SELECT emote_user_uuid FROM emote_user_emote_dir WHERE emote_dir_uuid = ($1)",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "emote_user_uuid",
+          "type_info": "Uuid"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid"
+        ]
+      },
+      "nullable": [
+        false
+      ]
+    }
+  },
+  "5efa706315f872f4a6b2e797d90b4c4bcb4b69493dadf2aa454e8824817f6458": {
+    "query": "SELECT emote_uuid FROM emote_image WHERE uuid = ($1)",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "emote_uuid",
+          "type_info": "Uuid"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid"
+        ]
+      },
+      "nullable": [
+        false
+      ]
+    }
+  },
+  "660e1fc4aa2448c7ff682ed6bcb254d0eb614b3c6b79da14a156a9d5b0c15248": {
+    "query": "SELECT * FROM emote_user",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "uuid",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 1,
+          "name": "username",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 2,
+          "name": "administrator",
+          "type_info": "Bool"
+        },
+        {
+          "ordinal": 3,
+          "name": "create_time",
+          "type_info": "Timestamptz"
+        },
+        {
+          "ordinal": 4,
+          "name": "modify_time",
+          "type_info": "Timestamptz"
+        }
+      ],
+      "parameters": {
+        "Left": []
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        true
+      ]
+    }
+  },
+  "66d46f282e0ae41e6c5e371aefaf36c88900a78b92b1dc26b36eb48ce8b49bbf": {
+    "query": "SELECT * FROM emote_user WHERE username = ($1)",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "uuid",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 1,
+          "name": "username",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 2,
+          "name": "administrator",
+          "type_info": "Bool"
+        },
+        {
+          "ordinal": 3,
+          "name": "create_time",
+          "type_info": "Timestamptz"
+        },
+        {
+          "ordinal": 4,
+          "name": "modify_time",
+          "type_info": "Timestamptz"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        true
+      ]
+    }
+  },
+  "69f8cc1a191b0a8ed304595a915844f413f53fdfe96979c36c991b62acf6a72e": {
+    "query": "SELECT * FROM emote_dir WHERE uuid = ($1)",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "uuid",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 1,
+          "name": "slug",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 2,
+          "name": "create_time",
+          "type_info": "Timestamptz"
+        },
+        {
+          "ordinal": 3,
+          "name": "modify_time",
+          "type_info": "Timestamptz"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        true
+      ]
+    }
+  },
+  "6e4d9e9f106987eddd273c5f37ca7cb3e181cd3d0ba32a3fa765afedde139593": {
+    "query": "SELECT emote.uuid, emote.slug, emote_dir_uuid, emote_type as \"emote_type!: EmoteType\", emote.create_time, emote.modify_time FROM emote",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "uuid",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 1,
+          "name": "slug",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 2,
+          "name": "emote_dir_uuid",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 3,
+          "name": "emote_type!: EmoteType",
+          "type_info": {
+            "Custom": {
+              "name": "emote_type",
+              "kind": {
+                "Enum": [
+                  "standard",
+                  "sticker"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "ordinal": 4,
+          "name": "create_time",
+          "type_info": "Timestamptz"
+        },
+        {
+          "ordinal": 5,
+          "name": "modify_time",
+          "type_info": "Timestamptz"
+        }
+      ],
+      "parameters": {
+        "Left": []
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        true
+      ]
+    }
+  },
+  "6ee2587846032d841b428d707f65df619f6d2fa9fdbcd78880daa63310f54532": {
+    "query": "SELECT * FROM emote_token",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "uuid",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 1,
+          "name": "emote_user_uuid",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 2,
+          "name": "description",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 3,
+          "name": "token_hash",
+          "type_info": "Text"
+        },
+        {
+          "ordinal": 4,
+          "name": "create_time",
+          "type_info": "Timestamptz"
+        },
+        {
+          "ordinal": 5,
+          "name": "modify_time",
+          "type_info": "Timestamptz"
+        }
+      ],
+      "parameters": {
+        "Left": []
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        true
+      ]
+    }
+  },
+  "73e579f3889a3568b6493687cf0018a096184bd5bd6c5a6d076dacb3bd957a19": {
+    "query": "SELECT * FROM emote_image",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "uuid",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 1,
+          "name": "width",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 2,
+          "name": "height",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 3,
+          "name": "emote_uuid",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 4,
+          "name": "create_time",
+          "type_info": "Timestamptz"
+        },
+        {
+          "ordinal": 5,
+          "name": "modify_time",
+          "type_info": "Timestamptz"
+        },
+        {
+          "ordinal": 6,
+          "name": "processing",
+          "type_info": "Bool"
+        },
+        {
+          "ordinal": 7,
+          "name": "original",
+          "type_info": "Bool"
+        },
+        {
+          "ordinal": 8,
+          "name": "content_type",
+          "type_info": "Text"
+        }
+      ],
+      "parameters": {
+        "Left": []
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        true,
+        false,
+        false,
+        false
+      ]
+    }
+  },
+  "799df485a4f0d2b008518fc9c1190a3024044f8046e656a4a9f35df4e1941f74": {
+    "query": "SELECT * FROM emote_token WHERE uuid = ($1)",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "uuid",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 1,
+          "name": "emote_user_uuid",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 2,
+          "name": "description",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 3,
+          "name": "token_hash",
+          "type_info": "Text"
+        },
+        {
+          "ordinal": 4,
+          "name": "create_time",
+          "type_info": "Timestamptz"
+        },
+        {
+          "ordinal": 5,
+          "name": "modify_time",
+          "type_info": "Timestamptz"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        true
+      ]
+    }
+  },
+  "7f28c41bb39f4d9d2b2a2df86bb365252971388e75932db5df4dd8820754ea87": {
+    "query": "SELECT emote.uuid, emote.slug, emote_dir_uuid, emote_type as \"emote_type!: EmoteType\", emote.create_time, emote.modify_time FROM emote INNER JOIN emote_dir ON emote.emote_dir_uuid = emote_dir.uuid WHERE emote_dir.slug= ($1) AND emote.slug = ($2)",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "uuid",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 1,
+          "name": "slug",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 2,
+          "name": "emote_dir_uuid",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 3,
+          "name": "emote_type!: EmoteType",
+          "type_info": {
+            "Custom": {
+              "name": "emote_type",
+              "kind": {
+                "Enum": [
+                  "standard",
+                  "sticker"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "ordinal": 4,
+          "name": "create_time",
+          "type_info": "Timestamptz"
+        },
+        {
+          "ordinal": 5,
+          "name": "modify_time",
+          "type_info": "Timestamptz"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Text",
+          "Text"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        true
+      ]
+    }
+  },
+  "87f5de2c4ea32c07734a4e962a750cea7e14c5e1cc0d996e6146ad9494c34392": {
+    "query": "INSERT INTO emote_user (username, administrator) VALUES ($1, $2) RETURNING *",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "uuid",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 1,
+          "name": "username",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 2,
+          "name": "administrator",
+          "type_info": "Bool"
+        },
+        {
+          "ordinal": 3,
+          "name": "create_time",
+          "type_info": "Timestamptz"
+        },
+        {
+          "ordinal": 4,
+          "name": "modify_time",
+          "type_info": "Timestamptz"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Varchar",
+          "Bool"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        true
+      ]
+    }
+  },
+  "8902e12e1d200fa711dfd872ae3acdf76bc29159237bd2f66513f17d5d9d9be3": {
+    "query": "SELECT emote.uuid, emote.slug, emote_dir_uuid, emote_type as \"emote_type!: EmoteType\", emote.create_time, emote.modify_time FROM emote WHERE emote.uuid = ($1)",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "uuid",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 1,
+          "name": "slug",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 2,
+          "name": "emote_dir_uuid",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 3,
+          "name": "emote_type!: EmoteType",
+          "type_info": {
+            "Custom": {
+              "name": "emote_type",
+              "kind": {
+                "Enum": [
+                  "standard",
+                  "sticker"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "ordinal": 4,
+          "name": "create_time",
+          "type_info": "Timestamptz"
+        },
+        {
+          "ordinal": 5,
+          "name": "modify_time",
+          "type_info": "Timestamptz"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        true
+      ]
+    }
+  },
+  "8a9ebe9cdb96b3df6400fb5d83775843a63bacf22440becabe3eb09166de3189": {
+    "query": "DELETE FROM emote WHERE uuid = ($1)",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Uuid"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "8b51beec07b1fe03dd45c0e4ea9bd93d8d541539872aac80ef35d858f03a01d4": {
+    "query": "SELECT * FROM emote_image WHERE emote_uuid = ($1)",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "uuid",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 1,
+          "name": "width",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 2,
+          "name": "height",
+          "type_info": "Int4"
+        },
+        {
+          "ordinal": 3,
+          "name": "emote_uuid",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 4,
+          "name": "create_time",
+          "type_info": "Timestamptz"
+        },
+        {
+          "ordinal": 5,
+          "name": "modify_time",
+          "type_info": "Timestamptz"
+        },
+        {
+          "ordinal": 6,
+          "name": "processing",
+          "type_info": "Bool"
+        },
+        {
+          "ordinal": 7,
+          "name": "original",
+          "type_info": "Bool"
+        },
+        {
+          "ordinal": 8,
+          "name": "content_type",
+          "type_info": "Text"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        true,
+        false,
+        false,
+        false
+      ]
+    }
+  },
+  "92dca69dd988ad9201e816abbd23e728dde55d7c7df6996f5614a2594358a11f": {
+    "query": "SELECT uuid FROM emote_user WHERE username = ($1)",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "uuid",
+          "type_info": "Uuid"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Text"
+        ]
+      },
+      "nullable": [
+        false
+      ]
+    }
+  },
+  "98a99ebccfe2da04c078a0495602cc8720a42f6ecb6677e15e61d7268444d62b": {
+    "query": "SELECT emote_dir_uuid FROM emote WHERE uuid = ($1)",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "emote_dir_uuid",
+          "type_info": "Uuid"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid"
+        ]
+      },
+      "nullable": [
+        false
+      ]
+    }
+  },
+  "a6109afc8df6705df007165e215e19ab59f1b51f466604fb7f59fcbfb91b6b9f": {
+    "query": "SELECT emote_user.* FROM emote_user INNER JOIN emote_user_emote_dir e ON e.emote_user_uuid = uuid WHERE e.emote_dir_uuid = ($1)",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "uuid",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 1,
+          "name": "username",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 2,
+          "name": "administrator",
+          "type_info": "Bool"
+        },
+        {
+          "ordinal": 3,
+          "name": "create_time",
+          "type_info": "Timestamptz"
+        },
+        {
+          "ordinal": 4,
+          "name": "modify_time",
+          "type_info": "Timestamptz"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        true
+      ]
+    }
+  },
+  "a84eebce951375462d227f56715f98c562847e1062ca79264777deb83c487f7d": {
+    "query": "SELECT * FROM emote_dir",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "uuid",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 1,
+          "name": "slug",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 2,
+          "name": "create_time",
+          "type_info": "Timestamptz"
+        },
+        {
+          "ordinal": 3,
+          "name": "modify_time",
+          "type_info": "Timestamptz"
+        }
+      ],
+      "parameters": {
+        "Left": []
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        true
+      ]
+    }
+  },
+  "a928f1360b3207653aaafdec3a6828024e3fc61de729f13467845a0008ecca9c": {
+    "query": "UPDATE emote_image SET processing = ($1), width = ($2), height = ($3) WHERE uuid = ($4)",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Bool",
+          "Int4",
+          "Int4",
+          "Uuid"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "a9d6cf473d3a4354514f91d7f4cc4fee01c2587a484ad7e49d9459e792b524c6": {
+    "query": "SELECT emote_user_uuid FROM emote_token WHERE uuid = ($1)",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "emote_user_uuid",
+          "type_info": "Uuid"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid"
+        ]
+      },
+      "nullable": [
+        false
+      ]
+    }
+  },
+  "c4f90e4a983f7fec7cf9102ff1ccbc7f36e02157dc93c25350c5c42b69d666e7": {
+    "query": "SELECT * FROM emote_token WHERE emote_user_uuid = ($1)",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "uuid",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 1,
+          "name": "emote_user_uuid",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 2,
+          "name": "description",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 3,
+          "name": "token_hash",
+          "type_info": "Text"
+        },
+        {
+          "ordinal": 4,
+          "name": "create_time",
+          "type_info": "Timestamptz"
+        },
+        {
+          "ordinal": 5,
+          "name": "modify_time",
+          "type_info": "Timestamptz"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        true
+      ]
+    }
+  },
+  "c65c82af7f116198ac9438e3ec647aa80cc16633e1dfef1530f6d8fd55205582": {
+    "query": "SELECT uuid, slug, emote_dir_uuid, emote_type as \"emote_type!: EmoteType\", create_time, modify_time FROM emote WHERE emote_dir_uuid = ($1)",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "uuid",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 1,
+          "name": "slug",
+          "type_info": "Varchar"
+        },
+        {
+          "ordinal": 2,
+          "name": "emote_dir_uuid",
+          "type_info": "Uuid"
+        },
+        {
+          "ordinal": 3,
+          "name": "emote_type!: EmoteType",
+          "type_info": {
+            "Custom": {
+              "name": "emote_type",
+              "kind": {
+                "Enum": [
+                  "standard",
+                  "sticker"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "ordinal": 4,
+          "name": "create_time",
+          "type_info": "Timestamptz"
+        },
+        {
+          "ordinal": 5,
+          "name": "modify_time",
+          "type_info": "Timestamptz"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid"
+        ]
+      },
+      "nullable": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        true
+      ]
+    }
+  },
+  "cd97bd0c48b5996b8c55420a9df36b4ab22bc34185008660923f730a3cfadbc5": {
+    "query": "UPDATE emote_image SET processing = ($1), width = ($2), height = ($3) WHERE uuid = ($4) RETURNING processing",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "processing",
+          "type_info": "Bool"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Bool",
+          "Int4",
+          "Int4",
+          "Uuid"
+        ]
+      },
+      "nullable": [
+        false
+      ]
+    }
+  },
+  "d066ad9240672b1f703a214ca351610dae9e4b3d4f587f68c2bee664c939eac1": {
+    "query": "DELETE FROM emote_dir WHERE uuid = ($1)",
+    "describe": {
+      "columns": [],
+      "parameters": {
+        "Left": [
+          "Uuid"
+        ]
+      },
+      "nullable": []
+    }
+  },
+  "f2fbe20d6ccb3ff131958d46d023ea3112174d2ca2ccd8b608d9c528432abe0b": {
+    "query": "INSERT INTO emote_token (emote_user_uuid, description, token_hash) VALUES ($1, $2, $3) RETURNING uuid",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "uuid",
+          "type_info": "Uuid"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid",
+          "Varchar",
+          "Text"
+        ]
+      },
+      "nullable": [
+        false
+      ]
+    }
+  }
+}

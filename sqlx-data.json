@@ -413,6 +413,26 @@
       ]
     }
   },
+  "2d6f7bcef9e12a6c4f57ad74766e314b4f2fde2cbe74d59c2ae57c335bf40cc3": {
+    "query": "SELECT uuid FROM emote WHERE emote_dir_uuid = ($1)",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "uuid",
+          "type_info": "Uuid"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid"
+        ]
+      },
+      "nullable": [
+        false
+      ]
+    }
+  },
   "30b49d49584a680c0839926dc64ea6d4a73c91bbf644d04adf320a3ce9ddc645": {
     "query": "SELECT privileged FROM emote_user_emote_dir WHERE emote_user_uuid = ($1) AND emote_dir_uuid = ($2)",
     "describe": {
@@ -1807,6 +1827,26 @@
         ]
       },
       "nullable": []
+    }
+  },
+  "d0becec51031c1238c363db761a48db9e063d046661aca6093937ee2b2ad7a98": {
+    "query": "SELECT uuid FROM emote_image WHERE emote_uuid = ($1)",
+    "describe": {
+      "columns": [
+        {
+          "ordinal": 0,
+          "name": "uuid",
+          "type_info": "Uuid"
+        }
+      ],
+      "parameters": {
+        "Left": [
+          "Uuid"
+        ]
+      },
+      "nullable": [
+        false
+      ]
     }
   },
   "f2fbe20d6ccb3ff131958d46d023ea3112174d2ca2ccd8b608d9c528432abe0b": {

@@ -39,8 +39,8 @@ impl ImageTypeHandler {
                 }
             }
             "image/png" => ImageType::PNG,
-            "image/GIF" => ImageType::GIF,
-            "image/APNG" => ImageType::APNG,
+            "image/gif" => ImageType::GIF,
+            "image/apng" => ImageType::APNG,
             "application/json" => ImageType::Lottie,
             "image/svg+xml" => ImageType::SVG,
             _ => {

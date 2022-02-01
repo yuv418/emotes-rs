@@ -8,7 +8,7 @@ use uuid::Uuid;
 use crate::graphql_schema::guards::{Column, UserOwnership};
 use crate::types::*;
 
-#[derive(Serialize, Deserialize, Debug, SimpleObject)]
+#[derive(Serialize, Deserialize, Debug, SimpleObject, Clone)]
 #[graphql(complex)]
 pub struct EmoteUser {
     pub uuid: Uuid,

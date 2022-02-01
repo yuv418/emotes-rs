@@ -41,6 +41,11 @@ impl Query {
         .fetch_optional(&**pool)
         .await?)
     }
+    // no guard since the token user doesn't require a guard, the guard is done in the handler
+    async fn token_user(&self, ctx: &Context<'_>) -> Result<EmoteUser> {
+        Ok(ctx.data::<EmoteUser>()?.clone())
+    }
+
     #[graphql(guard = "AdminGuard")]
     async fn all_users(&self, ctx: &Context<'_>) -> Result<Vec<EmoteUser>> {
         let pool = ctx.data::<Arc<PgPool>>()?;

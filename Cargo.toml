@@ -27,3 +27,4 @@ base64 = "0.13"
 argon2 = "0.3"
 rand = "0.8"
 libvips = "1"
+rust-s3 = { version = "0.28.1", features = ["blocking"] } # keep it simple

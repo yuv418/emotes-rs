@@ -15,6 +15,8 @@ use std::sync::Arc;
 mod config;
 mod graphql_schema;
 mod handler;
+mod image;
+mod storage;
 mod types;
 
 use config::EMOTES_CONFIG;

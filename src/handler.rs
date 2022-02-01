@@ -93,7 +93,7 @@ async fn emote_display(
 
     if let Ok(Some(emote)) = Emote::by_slug(Arc::clone(&pool), dir_slug + "/" + &emote_slug).await {
         let (mut width, mut height, mut multiplier) = match emote.emote_type {
-            EmoteType::Standard => (64, None, 1), // height is automatic
+            EmoteType::Standard => (48, None, 1), // height is automatic
             EmoteType::Sticker => (256, None, 1),
         };
 

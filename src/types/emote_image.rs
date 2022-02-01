@@ -4,6 +4,7 @@ use lazy_static::lazy_static;
 use libvips::{ops, VipsApp, VipsImage};
 use log::info;
 use serde::{Deserialize, Serialize};
+use sqlx::postgres::PgQueryResult;
 use sqlx::PgPool;
 use std::collections::HashMap;
 use std::path::Path;
@@ -16,7 +17,11 @@ use std::{
 };
 use uuid::Uuid;
 
-use crate::{config::EMOTES_CONFIG, image::ImageProcessor};
+use crate::{
+    config::EMOTES_CONFIG,
+    image::ImageProcessor,
+    storage::{StorageProvider, STORAGE_PROVIDER},
+};
 
 lazy_static! {
     static ref VIPS: VipsApp = {
@@ -45,7 +50,6 @@ pub struct EmoteImage {
 
 impl EmoteImage {
     pub fn get_emote_bytes(&self) -> anyhow::Result<Vec<u8>> {
-        use crate::storage::{StorageProvider, STORAGE_PROVIDER};
         use std::io::{Error, ErrorKind};
 
         Ok(STORAGE_PROVIDER.load(self.uuid)?)
@@ -207,5 +211,16 @@ impl EmoteImage {
             .fetch_optional(&*pool)
             .await?)
         }
+    }
+
+    pub async fn delete(pool: Arc<PgPool>, uuid: Uuid) -> Result<PgQueryResult> {
+        // delete from the storage backend
+        STORAGE_PROVIDER.delete(uuid)?;
+
+        Ok(
+            sqlx::query!("DELETE FROM emote_image WHERE uuid = ($1)", uuid)
+                .execute(&*pool)
+                .await?,
+        )
     }
 }

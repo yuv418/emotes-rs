@@ -26,4 +26,8 @@ impl StorageProvider for S3StorageProvider {
         // We're ignoring the "code" value. TODO don't ignore the code value.
         Ok(self.bucket.get_object_blocking(format!("{}", uuid))?.0)
     }
+    fn delete(&self, uuid: uuid::Uuid) -> Result<()> {
+        self.bucket.delete_object_blocking(format!("{}", uuid))?;
+        Ok(())
+    }
 }

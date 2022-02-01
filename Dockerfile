@@ -6,10 +6,8 @@ COPY . /build
 ENV SQLX_OFFLINE true
 RUN pacman -Sy --noconfirm base-devel libvips
 RUN cargo build --release
-RUN cargo install sqlx-cli
 
-RUN cp /root/.cargo/bin/sqlx /sqlx
 RUN cp -r /build/migrations /migrations
+# can migrate automagically now
 RUN cp /build/target/release/emotes-rs /emotes-rs
-RUN cp /build/emotes-rs-startup.sh /emotes-rs-startup.sh
-CMD ["/emotes-rs-startup.sh"]
+CMD ["/emotes-rs"]

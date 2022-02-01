@@ -1,6 +1,7 @@
 use async_graphql::{types::UploadValue, *};
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use sqlx::postgres::PgQueryResult;
 use sqlx::PgPool;
 use std::sync::Arc;
 use uuid::Uuid;
@@ -52,6 +53,22 @@ impl Emote {
 }
 
 impl Emote {
+    // TODO make this impl Deletable or something??
+    pub async fn delete(pool: Arc<PgPool>, uuid: Uuid) -> Result<PgQueryResult> {
+        // cascade was pointless
+        for emote_image_uuid in
+            sqlx::query!("SELECT uuid FROM emote_image WHERE emote_uuid = ($1)", uuid)
+                .fetch_all(&*pool)
+                .await?
+        {
+            EmoteImage::delete(Arc::clone(&pool), emote_image_uuid.uuid).await?;
+        }
+
+        Ok(sqlx::query!("DELETE FROM emote WHERE uuid = ($1)", uuid)
+            .execute(&*pool)
+            .await?)
+    }
+
     // Don't really see a way to keep this DRY
     pub async fn all(pool: Arc<PgPool>) -> Result<Vec<Self>> {
         Ok(sqlx::query_as!(

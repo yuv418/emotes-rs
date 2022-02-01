@@ -132,9 +132,7 @@ impl Mutation {
             if user.administrator || dir_owners[0].emote_user_uuid == user.uuid {
                 // one person left, that person is you. We don't have to check privilege since it's alread done for us
 
-                let result = sqlx::query!("DELETE FROM emote_dir WHERE uuid = ($1)", uuid)
-                    .execute(&**pool)
-                    .await?;
+                let result = EmoteDir::delete(Arc::clone(&pool), uuid).await?;
 
                 // TODO all emote data/dirs MUST be deleted here
 
@@ -185,9 +183,7 @@ impl Mutation {
     #[graphql(guard = "UserOwnsGuard::new(Table::Emote, Column::UUID(uuid)).or(AdminGuard)")]
     async fn delete_emote(&self, ctx: &Context<'_>, uuid: Uuid) -> Result<bool> {
         let pool = ctx.data::<Arc<PgPool>>()?;
-        let result = sqlx::query!("DELETE FROM emote WHERE uuid = ($1)", uuid)
-            .execute(&**pool)
-            .await?;
+        let result = Emote::delete(Arc::clone(&pool), uuid).await?;
 
         // TODO delete from the data dir as well
         Mutation::delete_helper(result).await
@@ -209,11 +205,8 @@ impl Mutation {
     #[graphql(guard = "UserOwnsGuard::new(Table::EmoteImage, Column::UUID(uuid)).or(AdminGuard)")]
     async fn delete_emote_image(&self, ctx: &Context<'_>, uuid: Uuid) -> Result<bool> {
         let pool = ctx.data::<Arc<PgPool>>()?;
-        let result = sqlx::query!("DELETE FROM emote_image WHERE uuid = ($1)", uuid)
-            .execute(&**pool)
-            .await?;
+        let result = EmoteImage::delete(Arc::clone(&pool), uuid).await?;
 
-        // TODO delete from the data dir as well
         Mutation::delete_helper(result).await
     }
 }

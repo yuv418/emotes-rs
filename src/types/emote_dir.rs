@@ -1,4 +1,5 @@
 
+use sqlx::postgres::PgQueryResult;
 use async_graphql::*;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
@@ -20,6 +21,20 @@ pub struct EmoteDir {
 }
 
 impl EmoteDir {
+    pub async fn delete(pool: Arc<PgPool>, uuid: Uuid) -> Result<PgQueryResult> {
+        // cascade was pointless
+        for emote_uuid in
+            sqlx::query!("SELECT uuid FROM emote WHERE emote_dir_uuid = ($1)", uuid)
+                .fetch_all(&*pool)
+                .await?
+        {
+            EmoteImage::delete(Arc::clone(&pool), emote_uuid.uuid).await?;
+        }
+
+        Ok(sqlx::query!("DELETE FROM emote_dir WHERE uuid = ($1)", uuid)
+            .execute(&*pool)
+            .await?)
+    }
     pub async fn user_privileged_for_dir(
         pool: Arc<PgPool>,
         user_uuid: Uuid,

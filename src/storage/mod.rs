@@ -7,6 +7,7 @@ use lazy_static::lazy_static;
 pub trait StorageProvider {
     fn save(&self, uuid: Uuid, data: &[u8]) -> Result<()>;
     fn load(&self, uuid: Uuid) -> Result<Vec<u8>>;
+    fn delete(&self, uuid: Uuid) -> Result<()>;
 }
 
 mod local_provider;

@@ -27,4 +27,8 @@ impl StorageProvider for LocalStorageProvider {
     fn load(&self, uuid: Uuid) -> Result<Vec<u8>> {
         Ok(fs::read(self.base_path.join(format!("{}", uuid)))?)
     }
+    fn delete(&self, uuid: Uuid) -> Result<()> {
+        fs::remove_file(self.base_path.join(format!("{}", uuid)))?;
+        Ok(())
+    }
 }

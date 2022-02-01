@@ -1,6 +1,7 @@
 use crate::image::{ImageType, ResizerBackend};
 use anyhow::Result;
 use libvips::{ops, VipsImage};
+use log::info;
 use std::sync::Arc;
 
 pub struct VipsResizerBackend {
@@ -39,7 +40,7 @@ impl ResizerBackend for VipsResizerBackend {
 
         Ok((
             resized_vips_image.get_width() as u32,
-            resized_vips_image.get_height() as u32,
+            resized_vips_image.get_page_height() as u32,
             match self.in_type {
                 ImageType::WEBPAnimated | ImageType::GIF => {
                     ops::gifsave_buffer(&resized_vips_image)?
@@ -54,9 +55,10 @@ impl ResizerBackend for VipsResizerBackend {
 
     fn dimensions(&self) -> Result<(u32, u32)> {
         let vips_image = self.vips_image()?;
+        info!("vips image's height is {}", vips_image.get_page_height());
         Ok((
             vips_image.get_width() as u32,
-            vips_image.get_height() as u32,
+            vips_image.get_page_height() as u32,
         ))
     }
 

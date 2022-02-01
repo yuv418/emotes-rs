@@ -3,17 +3,9 @@ use uuid::Uuid;
 
 use crate::{
     config::EMOTES_CONFIG,
-    image::{ImageTypeHandler, ResizerBackend},
-    storage::{LocalStorageProvider, StorageProvider},
+    image::{ImageType, ImageTypeHandler, ResizerBackend},
+    storage::{LocalStorageProvider, StorageProvider, STORAGE_PROVIDER},
 };
-
-use lazy_static::lazy_static;
-
-// TODO make STORAGE_PROVIDER dynamically configurable from EMOTES_CONFIG
-lazy_static! {
-    static ref STORAGE_PROVIDER: LocalStorageProvider =
-        LocalStorageProvider::new(EMOTES_CONFIG.data_dir.join("emotes"));
-}
 
 // metadata about source image
 pub struct ImageProcessor {
@@ -35,11 +27,7 @@ impl ImageProcessor {
         let (image_width, image_height) = image_type_handler.image_resizer.dimensions()?;
 
         // in_extension for "input" extension since this function is for a "source" or "original" file
-        STORAGE_PROVIDER.save(
-            image_uuid,
-            image_type_handler.in_extension(),
-            &image_type_handler.image_buffer,
-        )?;
+        STORAGE_PROVIDER.save(image_uuid, &image_type_handler.image_buffer)?;
 
         Ok(Self {
             image_width,
@@ -48,6 +36,24 @@ impl ImageProcessor {
             image_uuid,
         })
     }
+
+    pub fn load(image_uuid: Uuid, image_content_type: String) -> Result<Self> {
+        // in_extension for "input" extension since this function is for a "source" or "original" file
+
+        let image_buffer = STORAGE_PROVIDER.load(image_uuid)?;
+
+        let image_type_handler =
+            ImageTypeHandler::from_content_type(&image_content_type, image_buffer)?.unwrap(); // temporary hack for getting resizer
+        let (image_width, image_height) = image_type_handler.image_resizer.dimensions()?;
+
+        Ok(Self {
+            image_width,
+            image_height,
+            image_type_handler,
+            image_uuid,
+        })
+    }
+
     // width, height
     pub fn resize(
         &self,
@@ -61,11 +67,7 @@ impl ImageProcessor {
             .image_resizer
             .resize(out_width, out_height, out_multiplier)?;
 
-        STORAGE_PROVIDER.save(
-            out_uuid,
-            self.image_type_handler.out_extension(),
-            &proc_out_image_bytes,
-        )?;
+        STORAGE_PROVIDER.save(out_uuid, &proc_out_image_bytes)?;
 
         Ok((proc_out_width, proc_out_height))
     }

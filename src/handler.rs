@@ -143,13 +143,7 @@ async fn emote_display(
             }
 
             return HttpResponse::Ok().content_type(&*image.content_type).body(
-                if let Ok(mut file) = image.get_file() {
-                    let mut emote_bytes = vec![];
-                    if let Err(_) = file.read_to_end(&mut emote_bytes) {
-                        return HttpResponse::InternalServerError().json(EmoteMsg::new(
-                            "Failed to read file for emote. You should delete this emote.",
-                        ));
-                    };
+                if let Ok(emote_bytes) = image.get_emote_bytes() {
                     emote_bytes
                 } else {
                     return HttpResponse::InternalServerError().json(EmoteMsg::new(

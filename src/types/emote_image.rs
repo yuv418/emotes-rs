@@ -16,7 +16,7 @@ use std::{
 };
 use uuid::Uuid;
 
-use crate::config::EMOTES_CONFIG;
+use crate::{config::EMOTES_CONFIG, image::ImageProcessor};
 
 lazy_static! {
     static ref VIPS: VipsApp = {
@@ -44,27 +44,12 @@ pub struct EmoteImage {
 }
 
 impl EmoteImage {
-    pub fn get_file(&self) -> anyhow::Result<File> {
+    pub fn get_emote_bytes(&self) -> anyhow::Result<Vec<u8>> {
+        use crate::storage::{StorageProvider, STORAGE_PROVIDER};
         use std::io::{Error, ErrorKind};
-        let emote_path = Self::emote_path(
-            self.uuid,
-            Self::content_type_to_extension(&self.content_type, false).map_err(|x| {
-                Error::new(
-                    ErrorKind::Other,
-                    "Failed to convert emote image's content type to its extension for reading",
-                )
-            })?,
-        )
-        .map_err(|x| Error::new(ErrorKind::Other, "Failed to get path for emote"))?;
 
-        Ok(File::open(&emote_path)?)
+        Ok(STORAGE_PROVIDER.load(self.uuid)?)
     }
-
-    fn vips_get_width_height(buf: &[u8]) -> Result<(i32, i32)> {
-        let image = VipsImage::new_from_buffer(&buf, "")?; // the options are for transparent GIFs
-        Ok((image.get_width(), image.get_height()))
-    }
-
     pub async fn create_from_original(
         pool: Arc<PgPool>,
         emote_uuid: Uuid,
@@ -73,16 +58,13 @@ impl EmoteImage {
     ) -> Result<EmoteImage> {
         let mut file_vec: Vec<u8> = vec![];
         file.read_to_end(&mut file_vec)?;
-        // TODO lottie files are not implemented
-        let extension = Self::content_type_to_extension(&content_type, true)?;
-        info!("choose ext {}", extension);
 
-        let (width, height) = Self::vips_get_width_height(&file_vec)?;
+        // TODO lottie files are not implemented
         let mut inserted_image = sqlx::query_as!(
                 EmoteImage,
                 "INSERT INTO emote_image (width, height, original, content_type, emote_uuid) VALUES ($1, $2, $3, $4, $5) RETURNING *",
-            width,
-            height,
+            -1,
+            -1,
                 true,
                 content_type,
                 emote_uuid
@@ -90,12 +72,14 @@ impl EmoteImage {
             .fetch_one(&*pool)
             .await?;
 
-        Self::save_vips_image(&file_vec, inserted_image.uuid, extension)?;
+        let proc = ImageProcessor::save(file_vec, inserted_image.uuid, content_type)?;
 
         // Update the image to say the processing is over
         inserted_image.processing = sqlx::query!(
-            "UPDATE emote_image SET processing = ($1) WHERE uuid = ($2) RETURNING processing",
+            "UPDATE emote_image SET processing = ($1), width = ($2), height = ($3) WHERE uuid = ($4) RETURNING processing",
             false,
+            proc.image_width as i32,
+            proc.image_height as i32,
             inserted_image.uuid
         )
         .fetch_one(&*pool)
@@ -126,40 +110,22 @@ impl EmoteImage {
             .fetch_one(&*pool)
             .await?;
 
-            // get file
-            let path_for_image = Self::emote_path(
-                orig_emote_image.uuid,
-                Self::content_type_to_extension(&orig_emote_image.content_type, true)
-                    .expect("failed to get emote path"),
-            )?;
+            let proc = ImageProcessor::load(orig_emote_image.uuid, orig_emote_image.content_type)?;
 
-            let ext =
-                Self::content_type_to_extension(&orig_emote_image.content_type, false).unwrap();
-            info!("output ext is {}", ext);
-            let ext_content_type = match ext.as_str() {
-                "gif" => "image/gif",
-                "png" => "image/png",
-                _ => return Err("webp upload is unsupported at the moment".into()), // TODO use enums so this isn't a thing
-            };
             let resized_emote_image = sqlx::query_as!(
                 EmoteImage,
                 "INSERT INTO emote_image (emote_uuid, width, height, original, content_type, processing) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
-                emote_uuid, width, -1, false, ext_content_type, true
+                emote_uuid, width, -1, false, proc.image_type_handler.out_extension(), true
             ).fetch_one(&*pool).await?;
 
             info!("Start resizing image; wait");
 
-            let (out_path, new_width, new_height) = if let Some(height) = height {
-                unimplemented!("height rescale not implemented")
-            } else {
-                Self::vips_image_resize(
-                    path_for_image,
-                    resized_emote_image.uuid,
-                    ext,
-                    width,
-                    height,
-                )
-            };
+            let (new_width, new_height) = proc.resize(
+                resized_emote_image.uuid,
+                width as u32,
+                height.map(|x| x as u32),
+                None,
+            )?;
 
             // TODO change the content_type to actually be the extension BASED ON the emote, not the orig image content type
             // any point in setting width?
@@ -167,8 +133,8 @@ impl EmoteImage {
             if let Ok(res) = sqlx::query!(
                 "UPDATE emote_image SET processing = ($1), width = ($2), height = ($3) WHERE uuid = ($4)",
                 false,
-                new_width,
-                new_height,
+                new_width as u32,
+                new_height as u32,
                 resized_emote_image.uuid,
             )
             .execute(&*pool)
@@ -192,9 +158,7 @@ impl EmoteImage {
                 )
                 .execute(&*pool)
                 .await?;
-
-                // Delete the failed emote file
-                std::fs::remove_file(out_path)?;
+                // TODO ADD DELETE FUNCTION TO ImageProcessor
             }
 
             Ok::<(), async_graphql::Error>(())
@@ -202,36 +166,6 @@ impl EmoteImage {
         info!("spawned resizing image");
 
         Ok(true) // guess it always returns true...
-    }
-
-    fn vips_image_resize(
-        orig_path: PathBuf,
-        resized_uuid: Uuid,
-        ext: String,
-        width: i32,
-        height: Option<i32>,
-    ) -> (PathBuf, i32, i32) {
-        // looping is set by default
-        let vips_opts = if ext == "gif" { "[n=-1]" } else { "" };
-        let orig_vips_image =
-            VipsImage::new_from_file(&(orig_path.to_str().unwrap().to_owned() + vips_opts))
-                .unwrap();
-        let resized_vips_image =
-            ops::thumbnail_image(&orig_vips_image, width).expect("failed to resize image!");
-
-        let width = resized_vips_image.get_width();
-        let height = resized_vips_image.get_page_height(); // gifs have a large regular height, we want to use the page (frame?) height
-
-        let path =
-            Self::emote_path(resized_uuid, ext).expect("failed to generate path for resized image");
-
-        // gif looping will only work with a forked libvips, as libvips lacks bindings to `vips_image_set`.
-
-        resized_vips_image
-            .image_write_to_file(path.to_str().unwrap())
-            .expect("failed to write resized image");
-
-        (path, width, height)
     }
 
     fn emote_path(uuid: Uuid, extension: String) -> Result<PathBuf> {
@@ -272,39 +206,6 @@ impl EmoteImage {
             )
             .fetch_optional(&*pool)
             .await?)
-        }
-    }
-
-    fn save_vips_image(vips_image_bytes: &[u8], uuid: Uuid, extension: String) -> Result<()> {
-        // there are bigger issues if that unwrap fails
-        use std::fs;
-
-        let path = Self::emote_path(uuid, extension)?;
-        info!("WRITING IMAGE TO PATH {:?}", path);
-        fs::write(path, vips_image_bytes)?;
-        Ok(())
-    }
-
-    fn content_type_to_extension(content_type: &str, input: bool) -> Result<String> {
-        let accepted_content_types = {
-            let mut i = HashMap::new();
-            i.insert("image/png", ("png", "png"));
-            i.insert("image/apng", ("apng", "gif"));
-            i.insert("image/gif", ("gif", "gif"));
-            i.insert("image/jpeg", ("jpeg", "png"));
-            i.insert("image/svg+xml", ("svg", "png"));
-            i.insert("image/webp", ("webp", "webp")); // this one really depends whether it's animated or not, return webp for handling of that
-            i.insert("application/json", ("lottie", "gif"));
-            i
-        };
-
-        if accepted_content_types.contains_key(content_type) {
-            let ct_val = accepted_content_types.get(&content_type).unwrap();
-            let ct_out = if input { ct_val.0 } else { ct_val.1 };
-
-            Ok(ct_out.to_string())
-        } else {
-            Err("invalid content type for emote".into())
         }
     }
 }

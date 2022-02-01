@@ -7,6 +7,7 @@ pub enum ImageType {
     WEBPAnimated,
     WEBPStill,
     PNG,
+    JPEG,
     GIF,
     APNG,
     Lottie,
@@ -15,7 +16,7 @@ pub enum ImageType {
 
 pub struct ImageTypeHandler {
     pub image_type: ImageType,
-    pub image_resizer: Box<dyn ResizerBackend>,
+    pub image_resizer: Box<dyn ResizerBackend + Send>,
     pub image_buffer: Arc<Vec<u8>>,
 }
 
@@ -24,7 +25,7 @@ impl ImageTypeHandler {
     pub fn from_content_type(content_type: &str, image_buffer: Vec<u8>) -> Result<Option<Self>> {
         let image_buffer = Arc::new(image_buffer);
         let no_frames = match content_type {
-            "image/png" | "image/gif" | "image/apng" | "image/webp" => {
+            "image/jpeg" | "image/png" | "image/gif" | "image/apng" | "image/webp" => {
                 VipsResizerBackend::no_frames(Arc::clone(&image_buffer))
             }
             _ => unimplemented!(),
@@ -39,6 +40,7 @@ impl ImageTypeHandler {
                 }
             }
             "image/png" => ImageType::PNG,
+            "image/jpeg" => ImageType::JPEG,
             "image/gif" => ImageType::GIF,
             "image/apng" => ImageType::APNG,
             "application/json" => ImageType::Lottie,
@@ -48,8 +50,8 @@ impl ImageTypeHandler {
             }
         };
 
-        let image_resizer: Box<dyn ResizerBackend> = Box::new(match content_type {
-            "image/png" | "image/gif" | "image/apng" | "image/webp" => {
+        let image_resizer: Box<dyn ResizerBackend + Send> = Box::new(match content_type {
+            "image/jpeg" | "image/png" | "image/gif" | "image/webp" => {
                 VipsResizerBackend::new(Arc::clone(&image_buffer), image_type)
             }
             _ => unimplemented!(),
@@ -66,6 +68,7 @@ impl ImageTypeHandler {
         match self.image_type {
             ImageType::PNG => "png",
             ImageType::SVG => "png",
+            ImageType::JPEG => "png",
             ImageType::WEBPStill => "png",
             ImageType::WEBPAnimated => "gif",
             ImageType::APNG => "gif",
@@ -78,6 +81,7 @@ impl ImageTypeHandler {
         match self.image_type {
             ImageType::PNG => "png",
             ImageType::SVG => "svg",
+            ImageType::JPEG => "jpeg",
             ImageType::WEBPStill => "webp",
             ImageType::WEBPAnimated => "webp",
             ImageType::APNG => "apng",

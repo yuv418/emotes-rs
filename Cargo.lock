@@ -1630,8 +1630,7 @@ checksum = "eef78b64d87775463c549fbd80e19249ef436ea3bf1de2a1eb7e717ec7fab1e9"
 [[package]]
 name = "libvips"
 version = "1.4.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9c6574a02b3823ce436bd70d47546428f4546686031f8d2af4c056d23969ace2"
+source = "git+https://github.com/cdknight/libvips-rust-bindings?branch=master#21b3a9f41c4443103f6d9591f1149b4b3fd61597"
 dependencies = [
  "num-derive",
  "num-traits",

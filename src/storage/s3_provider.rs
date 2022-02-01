@@ -18,16 +18,12 @@ impl S3StorageProvider {
 }
 
 impl StorageProvider for S3StorageProvider {
-    fn save(&self, uuid: Uuid, ext: String, data: &[u8]) -> Result<()> {
-        self.bucket
-            .put_object_blocking(format!("{}.{}", uuid, ext), data)?;
+    fn save(&self, uuid: Uuid, data: &[u8]) -> Result<()> {
+        self.bucket.put_object_blocking(format!("{}", uuid), data)?;
         Ok(())
     }
-    fn load(&self, uuid: Uuid, ext: String) -> Result<Vec<u8>> {
+    fn load(&self, uuid: Uuid) -> Result<Vec<u8>> {
         // We're ignoring the "code" value. TODO don't ignore the code value.
-        Ok(self
-            .bucket
-            .get_object_blocking(format!("{}.{}", uuid, ext))?
-            .0)
+        Ok(self.bucket.get_object_blocking(format!("{}", uuid))?.0)
     }
 }

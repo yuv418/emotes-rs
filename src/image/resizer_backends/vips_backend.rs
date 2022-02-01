@@ -62,7 +62,11 @@ impl ResizerBackend for VipsResizerBackend {
 
     fn no_frames(in_buffer: Arc<Vec<u8>>) -> Result<u32> {
         // the more I think about this, the more this is a hack
-        let vips_image = VipsImage::new_from_buffer(&in_buffer, "[n=-1]")?; // load all frames
-        Ok(vips_image.get_n_pages() as u32)
+        let frame_counter = VipsImage::new_from_buffer(&in_buffer, "[n=-1]"); // load all frames
+
+        if let Err(_) = frame_counter {
+            return Ok(1);
+        }
+        Ok(frame_counter.unwrap().get_n_pages() as u32)
     }
 }

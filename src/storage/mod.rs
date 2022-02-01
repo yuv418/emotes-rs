@@ -18,5 +18,6 @@ pub use s3_provider::S3StorageProvider;
 // TODO make STORAGE_PROVIDER dynamically configurable from EMOTES_CONFIG
 lazy_static! {
     pub static ref STORAGE_PROVIDER: LocalStorageProvider =
-        LocalStorageProvider::new(EMOTES_CONFIG.data_dir.join("emotes"));
+        LocalStorageProvider::new(EMOTES_CONFIG.data_dir.join("emotes"))
+            .expect("failed to start local storage provider!");
 }

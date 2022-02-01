@@ -10,6 +10,7 @@ pub struct Query;
 
 #[Object]
 impl Query {
+    // TODO allow users to query themselves
     #[graphql(guard = "UserOwnsGuard::new(Table::EmoteUser, Column::UUID(uuid)).or(AdminGuard)")]
     pub async fn user(&self, ctx: &Context<'_>, uuid: Uuid) -> Result<Option<EmoteUser>> {
         let pool = ctx.data::<Arc<PgPool>>()?;

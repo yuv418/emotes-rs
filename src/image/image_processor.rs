@@ -9,6 +9,7 @@ use crate::{
 
 use lazy_static::lazy_static;
 
+// TODO make STORAGE_PROVIDER dynamically configurable from EMOTES_CONFIG
 lazy_static! {
     static ref STORAGE_PROVIDER: LocalStorageProvider =
         LocalStorageProvider::new(EMOTES_CONFIG.data_dir.join("emotes"));

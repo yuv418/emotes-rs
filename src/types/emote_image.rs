@@ -72,7 +72,7 @@ impl EmoteImage {
             .fetch_one(&*pool)
             .await?;
 
-        let proc = ImageProcessor::save(file_vec, inserted_image.uuid, content_type)?;
+        let proc = ImageProcessor::save(file_vec, inserted_image.uuid, &content_type)?;
 
         // Update the image to say the processing is over
         inserted_image.processing = sqlx::query!(
@@ -110,12 +110,12 @@ impl EmoteImage {
             .fetch_one(&*pool)
             .await?;
 
-            let proc = ImageProcessor::load(orig_emote_image.uuid, orig_emote_image.content_type)?;
+            let proc = ImageProcessor::load(orig_emote_image.uuid, &orig_emote_image.content_type)?;
 
             let resized_emote_image = sqlx::query_as!(
                 EmoteImage,
                 "INSERT INTO emote_image (emote_uuid, width, height, original, content_type, processing) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
-                emote_uuid, width, -1, false, proc.image_type_handler.out_extension(), true
+                emote_uuid, width, -1, false, orig_emote_image.content_type, true
             ).fetch_one(&*pool).await?;
 
             info!("Start resizing image; wait");

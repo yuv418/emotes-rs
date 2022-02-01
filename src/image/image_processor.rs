@@ -16,11 +16,7 @@ pub struct ImageProcessor {
 }
 
 impl ImageProcessor {
-    pub fn save(
-        image_buffer: Vec<u8>,
-        image_uuid: Uuid,
-        image_content_type: String,
-    ) -> Result<Self> {
+    pub fn save(image_buffer: Vec<u8>, image_uuid: Uuid, image_content_type: &str) -> Result<Self> {
         // TODO don't unwrap
         let image_type_handler =
             ImageTypeHandler::from_content_type(&image_content_type, image_buffer)?.unwrap(); // temporary hack for getting resizer
@@ -37,7 +33,7 @@ impl ImageProcessor {
         })
     }
 
-    pub fn load(image_uuid: Uuid, image_content_type: String) -> Result<Self> {
+    pub fn load(image_uuid: Uuid, image_content_type: &str) -> Result<Self> {
         // in_extension for "input" extension since this function is for a "source" or "original" file
 
         let image_buffer = STORAGE_PROVIDER.load(image_uuid)?;

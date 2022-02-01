@@ -124,6 +124,12 @@ async fn emote_display(
             }
         }
 
+        // this is a "for now" thing TODO delete this part when we implement resizing VipsImages by height and width
+        if let Some(_) = height {
+            return HttpResponse::InternalServerError().json(EmoteMsg::new(
+                    "Emotes cannot be resized by height yet. Please try again without the height, or wait for this feature to be implemented."
+                ));
+        }
         // right now, multiplier does nothing
 
         let corresponding_emote_image =

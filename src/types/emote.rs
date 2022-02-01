@@ -39,6 +39,16 @@ impl Emote {
         .fetch_all(&**pool)
         .await?)
     }
+    // get an emote image by size
+    async fn image(
+        &self,
+        ctx: &Context<'_>,
+        width: i32,
+        height: Option<i32>,
+    ) -> Result<Option<EmoteImage>> {
+        let pool = ctx.data::<Arc<PgPool>>()?;
+        EmoteImage::by_emote_and_size(Arc::clone(&pool), self.uuid, width, height).await
+    }
 }
 
 impl Emote {

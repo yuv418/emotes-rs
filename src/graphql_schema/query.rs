@@ -144,17 +144,6 @@ impl Query {
         .fetch_optional(&**pool)
         .await?)
     }
-    #[graphql(guard = "UserOwnsGuard::new(Table::Emote, Column::UUID(emote_uuid)).or(AdminGuard)")]
-    async fn emote_image_by_size(
-        &self,
-        ctx: &Context<'_>,
-        emote_uuid: Uuid,
-        width: i32,
-        height: Option<i32>,
-    ) -> Result<Option<EmoteImage>> {
-        let pool = ctx.data::<Arc<PgPool>>()?;
-        EmoteImage::by_emote_and_size(Arc::clone(&pool), emote_uuid, width, height).await
-    }
     #[graphql(guard = "AdminGuard")]
     async fn all_emote_images(&self, ctx: &Context<'_>) -> Result<Vec<EmoteImage>> {
         let pool = ctx.data::<Arc<PgPool>>()?;

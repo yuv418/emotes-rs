@@ -20,7 +20,7 @@ impl S3StorageProvider {
 impl StorageProvider for S3StorageProvider {
     fn save(&self, uuid: Uuid, ext: String, data: &[u8]) -> Result<()> {
         self.bucket
-            .put_object_blocking(format!("{}.{}", uuid, ext), &data)?;
+            .put_object_blocking(format!("{}.{}", uuid, ext), data)?;
         Ok(())
     }
     fn load(&self, uuid: Uuid, ext: String) -> Result<Vec<u8>> {

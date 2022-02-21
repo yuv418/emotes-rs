@@ -25,6 +25,7 @@ pub struct EmotesConfig {
     pub data_dir: PathBuf,
     #[serde(default = "default_bind")]
     pub http_bind: String,
+    pub emotes_web_url: Option<String>,
 }
 
 fn default_bind() -> String {

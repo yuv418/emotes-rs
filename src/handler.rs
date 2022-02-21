@@ -9,10 +9,13 @@ use async_graphql_actix_web::{GraphQLRequest, GraphQLResponse};
 use sqlx::PgPool;
 use std::sync::Arc;
 
-use crate::types::*;
 use log::info;
 
-use crate::graphql_schema::{mutation::Mutation, query::Query};
+use crate::{
+    config::EMOTES_CONFIG,
+    graphql_schema::{mutation::Mutation, query::Query},
+    types::*,
+};
 
 pub async fn graphql_playground() -> HttpResponse {
     HttpResponse::Ok()
@@ -60,6 +63,20 @@ pub async fn emote_display_handler(
     let emote_slug = request.match_info().get("emote_slug").unwrap();
     let options = request.match_info().get("options").map(|x| x.to_owned());
     emote_display(pool, dir_slug.to_owned(), emote_slug.to_owned(), options).await
+}
+
+pub async fn index_handler() -> HttpResponse {
+    // In the future, maybe we'd like to take this, embed the
+    // compiled emotes-web, and embed it here.
+    if let Some(url) = EMOTES_CONFIG.emotes_web_url.as_deref() {
+        HttpResponse::PermanentRedirect()
+            .append_header(("Location", url))
+            .finish()
+    } else {
+        HttpResponse::Ok().json(EmoteMsg::new(
+            "Please download an emotes client to use emotes.",
+        ))
+    }
 }
 
 async fn emote_display(

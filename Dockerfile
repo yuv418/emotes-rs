@@ -1,10 +1,10 @@
 # Stolen from https://gist.github.com/PurpleBooth/ec81bad0a7b56ac767e0da09840f835a
-FROM rnestler/archlinux-rust
+FROM archlinux:latest
 
 WORKDIR /build
 COPY . /build
 ENV SQLX_OFFLINE true
-RUN pacman -Sy --noconfirm base-devel libvips
+RUN pacman -Sy --noconfirm base-devel libvips cargo
 RUN cargo build --release
 
 RUN cp -r /build/migrations /migrations

@@ -1,11 +1,7 @@
 use anyhow::Result;
 use uuid::Uuid;
 
-use crate::{
-    config::EMOTES_CONFIG,
-    image::{ImageType, ImageTypeHandler, ResizerBackend},
-    storage::{LocalStorageProvider, StorageProvider, STORAGE_PROVIDER},
-};
+use crate::{image::ImageTypeHandler, storage::STORAGE_PROVIDER};
 
 // metadata about source image
 pub struct ImageProcessor {

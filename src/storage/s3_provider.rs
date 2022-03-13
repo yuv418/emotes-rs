@@ -54,9 +54,7 @@ pub struct S3CredentialsConfig {
 
 #[derive(Deserialize)]
 pub struct S3StorageProviderConfig {
-    name: String,
     bucket: String,
-    location_supported: bool,
     region: String,
     credentials: crate::storage::s3_provider::S3CredentialsConfig,
 }

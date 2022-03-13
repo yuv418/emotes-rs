@@ -1,27 +1,16 @@
 use async_graphql::*;
 use chrono::{DateTime, Utc};
 use lazy_static::lazy_static;
-use libvips::{ops, VipsApp, VipsImage};
+use libvips::VipsApp;
 use log::info;
 use serde::{Deserialize, Serialize};
 use sqlx::postgres::PgQueryResult;
 use sqlx::PgPool;
-use std::collections::HashMap;
-use std::path::Path;
-use std::path::PathBuf;
 use std::sync::Arc;
-use std::time::Duration;
-use std::{
-    fs::{write, File},
-    io::Read,
-};
+use std::{fs::File, io::Read};
 use uuid::Uuid;
 
-use crate::{
-    config::EMOTES_CONFIG,
-    image::ImageProcessor,
-    storage::{StorageProvider, STORAGE_PROVIDER},
-};
+use crate::{image::ImageProcessor, storage::STORAGE_PROVIDER};
 
 lazy_static! {
     static ref VIPS: VipsApp = {
@@ -50,8 +39,6 @@ pub struct EmoteImage {
 
 impl EmoteImage {
     pub fn get_emote_bytes(&self) -> anyhow::Result<Vec<u8>> {
-        use std::io::{Error, ErrorKind};
-
         Ok(STORAGE_PROVIDER.load(self.uuid)?)
     }
     pub async fn create_from_original(
@@ -170,18 +157,6 @@ impl EmoteImage {
         info!("spawned resizing image");
 
         Ok(true) // guess it always returns true...
-    }
-
-    fn emote_path(uuid: Uuid, extension: String) -> Result<PathBuf> {
-        let emotes_dir = EMOTES_CONFIG.data_dir.join("emotes");
-        if !emotes_dir.exists() {
-            std::fs::create_dir_all(&emotes_dir)?
-        }
-
-        let abs_emote_path =
-            std::fs::canonicalize(emotes_dir)?.join(format!("{}.{}", uuid, extension));
-        info!("abs_emote_path is {:?}", abs_emote_path);
-        Ok(abs_emote_path)
     }
 
     // TODO add multiplier

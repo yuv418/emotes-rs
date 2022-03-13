@@ -1,11 +1,6 @@
 use async_graphql::{Context, Guard, Result};
-use sqlx::PgPool;
-use std::sync::Arc;
-use std::sync::RwLock;
-use uuid::Uuid;
-
-use crate::types::*;
 use lazy_static::lazy_static;
+use std::sync::RwLock;
 
 pub struct FirstRunGuard;
 
@@ -14,7 +9,7 @@ lazy_static! {
 }
 #[async_trait::async_trait]
 impl Guard for FirstRunGuard {
-    async fn check(&self, ctx: &Context<'_>) -> Result<()> {
+    async fn check(&self, _ctx: &Context<'_>) -> Result<()> {
         if *FIRST_RUN.read().unwrap() {
             Ok(())
         } else {

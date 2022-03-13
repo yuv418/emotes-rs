@@ -68,7 +68,6 @@ async fn emote_display(
     emote_slug: String,
     options: Option<String>,
 ) -> HttpResponse {
-    use std::io::Read;
     info!(
         "requested an emote:\n\tdir_slug: {}\n\temote_slug: {}\n\toptions: {:?}",
         dir_slug, emote_slug, options

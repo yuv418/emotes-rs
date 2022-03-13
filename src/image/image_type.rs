@@ -31,7 +31,7 @@ impl ImageTypeHandler {
             _ => unimplemented!(),
         }?;
 
-        let mut image_type = match content_type {
+        let image_type = match content_type {
             "image/webp" => {
                 if no_frames > 1 {
                     ImageType::WEBPStill
@@ -62,32 +62,5 @@ impl ImageTypeHandler {
             image_resizer,
             image_buffer,
         }))
-    }
-
-    pub fn out_extension(&self) -> String {
-        match self.image_type {
-            ImageType::PNG => "png",
-            ImageType::SVG => "png",
-            ImageType::JPEG => "png",
-            ImageType::WEBPStill => "png",
-            ImageType::WEBPAnimated => "gif",
-            ImageType::APNG => "gif",
-            ImageType::Lottie => "gif",
-            ImageType::GIF => "gif",
-        }
-        .to_string()
-    }
-    pub fn in_extension(&self) -> String {
-        match self.image_type {
-            ImageType::PNG => "png",
-            ImageType::SVG => "svg",
-            ImageType::JPEG => "jpeg",
-            ImageType::WEBPStill => "webp",
-            ImageType::WEBPAnimated => "webp",
-            ImageType::APNG => "apng",
-            ImageType::Lottie => "lottie", // even though they're json, this makes more sense
-            ImageType::GIF => "gif",
-        }
-        .to_string()
     }
 }

@@ -1,5 +1,5 @@
 use crate::storage::{LocalStorageProviderConfig, S3StorageProviderConfig};
-use anyhow::{Context, Result};
+use anyhow::Context;
 use lazy_static::lazy_static;
 use serde::Deserialize;
 use std::fs::File;

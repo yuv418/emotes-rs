@@ -23,7 +23,6 @@ lazy_static! {
 pub struct EmotesConfig {
     pub db_url: String,
     pub db_max_connections: u32,
-    pub data_dir: PathBuf,
     #[serde(default = "default_bind")]
     pub http_bind: String,
     pub storage_provider: EmotesConfigStorageProvider,

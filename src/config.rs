@@ -1,3 +1,4 @@
+use crate::storage::{LocalStorageProviderConfig, S3StorageProviderConfig};
 use anyhow::{Context, Result};
 use lazy_static::lazy_static;
 use serde::Deserialize;
@@ -25,7 +26,15 @@ pub struct EmotesConfig {
     pub data_dir: PathBuf,
     #[serde(default = "default_bind")]
     pub http_bind: String,
-    pub emotes_web_url: Option<String>,
+    pub storage_provider: EmotesConfigStorageProvider,
+}
+
+// TODO move the config structs to the actual storage files
+#[derive(Deserialize)]
+#[serde(tag = "type", rename_all = "lowercase")]
+pub enum EmotesConfigStorageProvider {
+    Local(LocalStorageProviderConfig),
+    S3(S3StorageProviderConfig),
 }
 
 fn default_bind() -> String {

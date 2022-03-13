@@ -1,6 +1,7 @@
 use crate::storage::StorageProvider;
 use anyhow::Result;
 use log::info;
+use serde::Deserialize;
 use std::fs;
 use std::path::PathBuf;
 use uuid::Uuid;
@@ -10,12 +11,14 @@ pub struct LocalStorageProvider {
 }
 
 impl LocalStorageProvider {
-    pub fn new(base_path: PathBuf) -> Result<Self> {
-        if !base_path.exists() {
+    pub fn new(config: &LocalStorageProviderConfig) -> Result<Self> {
+        if !config.data_dir.exists() {
             info!("creating local storage dir for emotes");
-            fs::create_dir_all(&base_path)?;
+            fs::create_dir_all(&config.data_dir)?;
         }
-        Ok(Self { base_path })
+        Ok(Self {
+            base_path: config.data_dir.clone(),
+        })
     }
 }
 
@@ -31,4 +34,9 @@ impl StorageProvider for LocalStorageProvider {
         fs::remove_file(self.base_path.join(format!("{}", uuid)))?;
         Ok(())
     }
+}
+
+#[derive(Deserialize)]
+pub struct LocalStorageProviderConfig {
+    data_dir: PathBuf,
 }

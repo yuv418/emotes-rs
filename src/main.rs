@@ -87,11 +87,6 @@ async fn main() -> Result<()> {
             .wrap(Logger::default())
             .wrap(NormalizePath::trim())
             .service(
-                web::resource("/")
-                    .guard(guard::Get())
-                    .to(handler::index_handler),
-            )
-            .service(
                 web::resource("/api")
                     .guard(guard::Post())
                     .to(handler::api_graphql_handler),
